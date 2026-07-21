@@ -60,4 +60,16 @@ Express API (Node.js :4000)
 
 - Every notes query is scoped by `user_id` in the `WHERE` clause — never fetched then filtered in JS.
 - A note belonging to another user returns **404** (not 403), so IDs cannot be enumerated.
-- Rich-text HTML is sanitized server-side before insert/update; the client renders sanitized HTML only.
+### Rich text is the main XSS surface
+
+Quill produces HTML, we store it, and the editor and preview render it with `dangerouslySetInnerHTML`. That is a stored-XSS path unless it is closed deliberately:
+
+- **Sanitize on write, server-side**, with `sanitize-html` and a strict **allowlist** (`p, br, strong, em, u, s, h1-h3, ul, ol, li, blockquote, pre, code, a`). Allowlist, never blocklist — a blocklist loses to the next encoding trick.
+- `a` keeps only `href` (schemes limited to `http`, `https`, `mailto`) and gets `rel="noopener noreferrer"` forced. No `style`, no `on*` handlers, no `<script>`, `<iframe>`, `<object>`, `<svg>`.
+- **Never trust the client's sanitizer.** Quill runs in the browser; an attacker calls the API directly with curl.
+- **Sanitize on read as well as write.** Sanitizing only on write means any row written before a rule was tightened — or inserted by a seed script or manual SQL — is rendered as-is forever. Passing through the sanitizer on output makes the rendering path safe independent of how a row got into the table.
+- `contentText` is derived server-side by stripping tags. It is never accepted from the client, so it cannot be used to smuggle markup into search results.
+
+### JWT logout is not revocation — known limitation
+
+`/auth/logout` deletes the client's copy of the token; the token itself stays cryptographically valid until `exp`. Anyone who copied it before logout can keep using it. Mitigated by a short `JWT_EXPIRES_IN` (1d). Real revocation needs a server-side denylist or short access tokens plus refresh rotation — out of scope, recorded here so it is a documented trade-off rather than an oversight.

@@ -11,13 +11,22 @@ Incremental plan. Each part is independently runnable/verifiable. **Do not start
 | Frontend | Vite + React 18 + React Router + Axios + plain CSS |
 | Database | MySQL 8 via Docker Compose |
 | DB access | `mysql2/promise` with a connection pool, hand-written SQL (no ORM) |
-| Auth | JWT (access token) + bcrypt password hashing |
+| Auth | JWT (access token) + **bcryptjs** password hashing |
 | Logging | Pino + `pino-http` + `pino-pretty` (dev only) |
 | Backend tests | Mocha + Chai + Sinon + Supertest, coverage via c8 |
 | Frontend tests | Jest + React Testing Library + jsdom |
 | Quality | SonarQube (Docker) + `sonar-scanner`, ESLint + Prettier |
 | VCS | Git, feature-branch workflow |
-| Rich text | `react-quill` (HTML stored sanitized) |
+| Rich text | **`react-quill-new`** (HTML stored sanitized) |
+| Env in scripts | `cross-env` (bare `NODE_ENV=x cmd` does not work on Windows) |
+
+### Dependency choices that are not the obvious default
+
+| Instead of | We use | Reason |
+|---|---|---|
+| `bcrypt` | `bcryptjs` | `bcrypt` is a native addon needing node-gyp + Visual Studio Build Tools on Windows; a missing prebuild for Node 24 stalls setup. `bcryptjs` is pure JS, same API, hash-compatible. Slower, which is irrelevant at this scale. |
+| `react-quill` | `react-quill-new` | `react-quill` has had no release since **Sept 2023**, peers cap at React 18, and it calls `findDOMNode` — which warns under React 18 StrictMode and is removed in React 19. `react-quill-new` is the maintained fork (React 16–19). |
+| Express 5 | Express 4 | Express 5 auto-forwards rejected promises, which would remove `asyncHandler`. Sticking to 4 keeps the middleware ecosystem (`express-rate-limit`, `helmet`) on its best-tested path and keeps explicit error plumbing visible — which is a graded requirement here. |
 
 ## Parts
 

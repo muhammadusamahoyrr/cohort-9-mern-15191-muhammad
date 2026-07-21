@@ -27,6 +27,15 @@ Status: ⬜ not started · 🟨 in progress · ✅ verified
 | 2026-07-21 | `schema.sql` creates `notes_app_test` too | integration tests need it; nothing else was creating it |
 | 2026-07-21 | List endpoint returns `preview`, not `contentHtml` | keeps dashboard payloads small; full body only on single-note fetch |
 | 2026-07-21 | Search stays in core scope, not optional Part 10 | `?search=` is cheap once `content_text` exists and the dashboard needs it |
+| 2026-07-21 | `bcryptjs` over `bcrypt` | native addon needs VS Build Tools on Windows; pure-JS avoids a setup wall |
+| 2026-07-21 | `react-quill-new` over `react-quill` | upstream unpublished since Sept 2023, uses `findDOMNode`, caps at React 18 |
+| 2026-07-21 | `cross-env` in all npm scripts | `NODE_ENV=x cmd` is a syntax error on Windows |
+| 2026-07-21 | Dropped FULLTEXT for scoped `LIKE` | FULLTEXT doesn't compose with `WHERE user_id`; min-token/stopwords surprise users; one code path beats two |
+| 2026-07-21 | Rate limiter off when `NODE_ENV=test` | otherwise the integration suite 429s partway through and looks flaky |
+| 2026-07-21 | Single `src/config/env.js` for `import.meta.env` | `import.meta` is a syntax error under Jest; one mockable seam instead of a Babel plugin |
+| 2026-07-21 | Body limit 4 MB, `data:` images stripped | Quill pastes base64 images; 1 MB fails on a screenshot, and images don't belong in `MEDIUMTEXT` |
+| 2026-07-21 | UTC end to end (`TZ=UTC`, pool `timezone: 'Z'`) | otherwise timestamps shift by the host offset — invisible on a UTC CI box |
+| 2026-07-21 | Sanitize on read as well as write | write-only sanitizing trusts every pre-existing/seeded row forever |
 | 2026-07-21 | JWT in `localStorage` | simple SPA auth; documented trade-off vs httpOnly cookies (XSS exposure) |
 
 ## Open questions

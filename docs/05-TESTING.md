@@ -16,6 +16,9 @@ backend/test/
 
 Run: `npm test` · `npm run test:unit` · `npm run test:integration` · `npm run test:coverage` (c8 → `coverage/lcov.info`).
 
+> **Windows:** npm scripts run through `cmd.exe`, where the Unix `NODE_ENV=test mocha` prefix is a syntax error (`'NODE_ENV' is not recognized`). Every script that sets an env var uses `cross-env`:
+> `"test": "cross-env NODE_ENV=test mocha"`. This applies to the frontend scripts too.
+
 ### Unit tests
 Stub the layer below with Sinon; assert behavior, not implementation.
 
@@ -51,6 +54,28 @@ frontend/src/__tests__/   or  *.test.jsx colocated
 ```
 
 Config: `jest-environment-jsdom`, `@testing-library/jest-dom`, Babel transform for JSX/ESM, `identity-obj-proxy` for CSS imports. Axios is mocked at the `src/api/` module boundary — tests never hit the network.
+
+### `import.meta.env` — the trap that stops Jest dead
+
+Vite exposes config as `import.meta.env.VITE_API_URL`. Jest transforms to CommonJS, where `import.meta` is a **syntax error** — importing `api/client.js` fails to parse and every test touching the API layer dies before it runs.
+
+Fix, decided up front: **no source file reads `import.meta.env` directly.** All of it goes through one module:
+
+```js
+// src/config/env.js  — the only file that mentions import.meta
+export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
+```
+
+Jest maps that single module to a stub via `moduleNameMapper`:
+
+```js
+moduleNameMapper: {
+  '\\.(css|scss)$': 'identity-obj-proxy',
+  '^.*/config/env$': '<rootDir>/src/__mocks__/env.js',
+}
+```
+
+One seam, one mock, no Babel plugin. `src/__mocks__/env.js` exports a fixed `API_URL`, which also keeps tests independent of whatever is in `.env`.
 
 Run: `npm test` · `npm run test:coverage`.
 

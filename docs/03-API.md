@@ -96,5 +96,7 @@ Body: `{ title?, contentHtml?, isPinned? }` — at least one field required.
 
 - **CORS:** only `CORS_ORIGIN` (default `http://localhost:5173`) is allowed.
 - **Rate limit:** 100 req / 15 min per IP globally; 10 req / 15 min on `/api/auth/*`.
-- **Body limit:** 1 MB.
+  **The limiter must be disabled when `NODE_ENV === 'test'`.** The integration suite makes dozens of register/login calls from `127.0.0.1`; with the limiter active it starts returning 429 partway through and the failures look like flaky tests rather than a config problem. The limiter's own behavior is covered by a dedicated unit test instead.
+- **Body limit:** 4 MB (`express.json({ limit: '4mb' })`).
+  1 MB is too small for this app: Quill embeds pasted images as base64 `data:` URIs, and a single screenshot blows past it, producing a confusing `PayloadTooLargeError` on save. The sanitizer additionally **strips `<img>` tags with `data:` sources** so images never reach the database — `content_html` stays text, which is what `MEDIUMTEXT` is sized for. Image upload is explicitly out of scope.
 - **Sanitization:** `contentHtml` is sanitized server-side; `contentText` is derived, never accepted from the client.
