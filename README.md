@@ -6,7 +6,9 @@ Full-stack notes application: users sign up, log in, and manage their own rich-t
 
 ## Status
 
-Part 0 (foundation) complete — see [docs/PROGRESS.md](docs/PROGRESS.md).
+Parts 0, 6 and 7 (foundation + frontend) complete — see [docs/PROGRESS.md](docs/PROGRESS.md).
+The backend (Parts 1–5) is next; the frontend is written against the contract in
+[docs/03-API.md](docs/03-API.md) and expects it on `http://localhost:4000/api`.
 The project is built in verified increments defined in [docs/00-PLAN.md](docs/00-PLAN.md).
 
 ## Documentation
