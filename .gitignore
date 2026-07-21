@@ -1,0 +1,34 @@
+# dependencies
+node_modules/
+
+# environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# build output
+dist/
+build/
+
+# tests & coverage
+coverage/
+.nyc_output/
+
+# logs
+*.log
+logs/
+npm-debug.log*
+
+# sonarqube
+.scannerwork/
+.sonar/
+
+# docker volumes
+docker/data/
+
+# editors / os
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
