@@ -77,6 +77,22 @@ moduleNameMapper: {
 
 One seam, one mock, no Babel plugin. `src/__mocks__/env.js` exports a fixed `API_URL`, which also keeps tests independent of whatever is in `.env`.
 
+### Two more traps, found while writing the suite
+
+**Quill cannot run in jsdom.** `react-quill-new` needs selection and range APIs
+jsdom does not implement. `NoteEditor.test.jsx` replaces it with a `<textarea>`
+that reports changes the way Quill does (`onChange(value, delta, 'user')`).
+The editor's own save/cancel/dirty behaviour is what these tests are about;
+Quill is a dependency, not the subject.
+
+**`testMatch` must be narrowed.** Jest's default picks up *every* file under
+`__tests__/`, so `__tests__/helpers/render.jsx` is collected as a suite and
+fails as "empty". Config restricts suites to `src/**/*.test.{js,jsx}`.
+
+**Automocked modules return `undefined`, not a promise.** `jest.mock('../api/auth.api')`
+plus a successful login means `AuthProvider` immediately calls `me()` and gets
+`undefined` back. Tests that log in must stub `me` as well as `login`.
+
 Run: `npm test` · `npm run test:coverage`.
 
 Coverage:

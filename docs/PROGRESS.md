@@ -12,7 +12,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ verified
 | 5 | Backend tests (Mocha/Chai/Sinon/Supertest + coverage) | ⬜ | |
 | 6 | Frontend skeleton (Vite, routing, auth context, api client) | ✅ | `npm run build` clean; unauthenticated visit redirects to `/login` |
 | 7 | Frontend screens (login, dashboard, editor, profile) | ✅ | all four screens driven end-to-end in a browser against a stub API |
-| 8 | Frontend tests (Jest + RTL) | ⬜ | |
+| 8 | Frontend tests (Jest + RTL) | ✅ | 92 tests green; 93% statements / 84% branches, `coverage/lcov.info` written |
 | 9 | Quality gate (ESLint, Prettier, SonarQube scan) | ⬜ | |
 | 10 | Optional extras (Socket.IO, export/import, filters) | ⬜ | |
 
