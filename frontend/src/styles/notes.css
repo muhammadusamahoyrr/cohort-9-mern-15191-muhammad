@@ -1,0 +1,296 @@
+/* Dashboard list, note cards, search bar, confirm dialog and the editor. */
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.search {
+  position: relative;
+  flex: 1 1 220px;
+}
+
+.search input {
+  width: 100%;
+  padding: 0.55rem 2.2rem 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.search__clear {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  transform: translateY(-50%);
+  padding: 0.2rem 0.45rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.search__clear:hover {
+  color: var(--text);
+}
+
+.sort-select {
+  padding: 0.55rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.note-grid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: 1fr;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.note-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 150px;
+  padding: 1rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.note-card:hover {
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-2px);
+}
+
+.note-card__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.note-card__title {
+  margin: 0;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.note-card__title a {
+  color: var(--text);
+}
+
+.note-card__pin {
+  margin-left: auto;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.note-card__preview {
+  flex: 1;
+  margin: 0.5rem 0 0.9rem;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  /* Three lines, then fade out — keeps every card the same height. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.note-card__foot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border);
+}
+
+.note-card__date {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.note-card__actions {
+  display: flex;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+
+.note-card__actions .btn {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.empty {
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+  background: var(--surface-alt);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.empty h2 {
+  margin-bottom: 0.35rem;
+}
+
+.empty p {
+  margin: 0 0 1.25rem;
+  color: var(--text-muted);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  margin-top: 1.75rem;
+}
+
+.pagination__status {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+/* --- confirm dialog --------------------------------------------------- */
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(20, 18, 16, 0.45);
+}
+
+.dialog {
+  width: 100%;
+  max-width: 380px;
+  padding: 1.4rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lift);
+}
+
+.dialog h2 {
+  margin-bottom: 0.4rem;
+  font-size: 1.15rem;
+}
+
+.dialog p {
+  margin: 0 0 1.35rem;
+  color: var(--text-muted);
+  font-size: 0.93rem;
+}
+
+.dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* --- editor ----------------------------------------------------------- */
+
+.editor__title {
+  width: 100%;
+  margin-bottom: 0.9rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.editor__title::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.editor__body {
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.editor__body .ql-toolbar {
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-alt);
+}
+
+.editor__body .ql-container {
+  border: 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.editor__body .ql-editor {
+  min-height: 320px;
+  color: var(--text);
+}
+
+.editor__body .ql-editor.ql-blank::before {
+  color: var(--text-muted);
+  font-style: normal;
+}
+
+/* Quill ships light-mode icon colours; nudge them for the dark palette. */
+@media (prefers-color-scheme: dark) {
+  .editor__body .ql-toolbar .ql-stroke {
+    stroke: var(--text-muted);
+  }
+  .editor__body .ql-toolbar .ql-fill {
+    fill: var(--text-muted);
+  }
+  .editor__body .ql-toolbar .ql-picker-label {
+    color: var(--text-muted);
+  }
+}
+
+.editor__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+.editor__actions .btn--ghost {
+  margin-left: auto;
+}
+
+.editor__hint {
+  color: var(--text-muted);
+  font-size: 0.83rem;
+}
+
+@media (min-width: 600px) {
+  .note-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .note-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
