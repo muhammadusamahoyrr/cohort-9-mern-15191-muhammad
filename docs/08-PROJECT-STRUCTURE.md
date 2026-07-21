@@ -97,9 +97,13 @@ Two independent npm packages (`backend/`, `frontend/`) in one repository. No wor
         │   └── useNotes.js
         ├── components/
         │   ├── ProtectedRoute.jsx
-        │   ├── Navbar.jsx
+        │   ├── Navbar.jsx              # shell: wordmark, nav, user menu
+        │   ├── UserMenu.jsx            # avatar dropdown: profile + logout
+        │   ├── Avatar.jsx
+        │   ├── LogoutButton.jsx        # logout + confirm, used in two places
         │   ├── NoteCard.jsx
         │   ├── SearchBar.jsx
+        │   ├── EmptyState.jsx          # ruled-sheet illustration + action
         │   ├── ConfirmDialog.jsx
         │   ├── Spinner.jsx
         │   └── ErrorBoundary.jsx
@@ -110,7 +114,13 @@ Two independent npm packages (`backend/`, `frontend/`) in one repository. No wor
         │   ├── NoteEditor.jsx          # Screen 3
         │   ├── Profile.jsx             # Screen 4
         │   └── NotFound.jsx
+        ├── utils/
+        │   └── date.js                 # relative + absolute timestamp formatting
         ├── styles/
+        │   ├── tokens.css              # the design system (see 10-DESIGN-SYSTEM.md)
+        │   ├── base.css                # elements, buttons, fields, .sheet surface
+        │   ├── shell.css               # navbar, containers, auth, profile
+        │   └── notes.css               # grid, cards, dialog, editor
         └── __tests__/
 ```
 

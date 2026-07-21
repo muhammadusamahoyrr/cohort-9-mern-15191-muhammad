@@ -3,35 +3,30 @@ import { formatRelative } from '../utils/date';
 
 export default function NoteCard({ note, onDelete }) {
   return (
-    <li className="note-card">
-      <div className="note-card__head">
-        <h2 className="note-card__title">
-          <Link to={`/notes/${note.id}`}>{note.title}</Link>
-        </h2>
-        {note.isPinned && (
-          <span className="note-card__pin" title="Pinned" aria-label="Pinned">
-            📌
-          </span>
-        )}
-      </div>
+    <li className={`sheet note-card${note.isPinned ? ' note-card--pinned' : ''}`}>
+      {note.isPinned && <span className="note-card__flag">Pinned</span>}
 
-      {/* `preview` is plain text derived server-side — never HTML, so no
-          dangerouslySetInnerHTML anywhere on the dashboard. */}
+      <h2 className="note-card__title">
+        <Link to={`/notes/${note.id}`}>{note.title}</Link>
+      </h2>
+
+      {/* `preview` is plain text derived server-side — never HTML, so the
+          dashboard has no reason to render markup at all. */}
       <p className="note-card__preview">
-        {note.preview || <span className="muted">No content yet</span>}
+        {note.preview || <span className="muted">Empty note</span>}
       </p>
 
       <div className="note-card__foot">
-        <time className="note-card__date" dateTime={note.updatedAt}>
+        <time className="annotation" dateTime={note.updatedAt}>
           {formatRelative(note.updatedAt)}
         </time>
         <div className="note-card__actions">
-          <Link className="btn btn--ghost" to={`/notes/${note.id}`}>
+          <Link className="btn btn--quiet btn--small" to={`/notes/${note.id}`}>
             Edit
           </Link>
           <button
             type="button"
-            className="btn btn--danger"
+            className="btn btn--danger btn--small"
             onClick={() => onDelete(note)}
             aria-label={`Delete ${note.title}`}
           >

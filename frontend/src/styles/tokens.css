@@ -1,0 +1,78 @@
+/* The whole visual system lives here. See docs/10-DESIGN-SYSTEM.md.
+   Nothing in a component file should introduce a colour, radius or spacing value. */
+
+:root {
+  /* surfaces + text */
+  --paper: #eceee9;
+  --sheet: #fafbf8;
+  --sheet-sunk: #f2f4ef;
+  --ink: #12211f;
+  --graphite: #5e6c68;
+  --rule: #d5dad3;
+  --ink-blue: #17565c;
+  --ink-blue-deep: #0f4045;
+  --ink-blue-wash: #e2ecec;
+
+  /* marks — only ever drawn on top of a surface */
+  --highlighter: #f0cf4e;
+  --red-pen: #9c2f27;
+  --red-pen-wash: #f7e9e7;
+
+  /* type */
+  --font-display: 'Newsreader Variable', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'Public Sans Variable', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Menlo, monospace;
+
+  --text-xs: 0.75rem; /* 12 */
+  --text-sm: 0.875rem; /* 14 */
+  --text-base: 1rem; /* 16 */
+  --text-md: 1.1875rem; /* 19 */
+  --text-lg: 1.4375rem; /* 23 */
+  --text-xl: 1.75rem; /* 28 */
+  --text-2xl: 2.125rem; /* 34 */
+  --text-3xl: 2.5625rem; /* 41 */
+
+  /* spacing — 4px base, nothing off-scale */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+  --sp-8: 4rem;
+
+  /* shape + elevation: a sheet on a desk, not a floating card */
+  --radius-control: 2px;
+  --radius-card: 4px;
+  --radius-panel: 6px;
+  --shadow-sheet: 0 1px 1px rgba(18, 33, 31, 0.04), 0 4px 12px -6px rgba(18, 33, 31, 0.18);
+  --shadow-lift: 0 1px 2px rgba(18, 33, 31, 0.06), 0 12px 24px -10px rgba(18, 33, 31, 0.28);
+
+  /* the signature: distance from a surface's left edge to its margin rule */
+  --margin-rule: 28px;
+
+  --page-max: 1080px;
+  --measure-max: 760px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14181a;
+    --sheet: #1c2124;
+    --sheet-sunk: #171c1f;
+    --ink: #e7ebe6;
+    --graphite: #9aa6a2;
+    --rule: #2e3639;
+    --ink-blue: #7fc4c9;
+    --ink-blue-deep: #a5d8dc;
+    --ink-blue-wash: #1d3134;
+
+    --highlighter: #c9a93b;
+    --red-pen: #e08b80;
+    --red-pen-wash: #33211f;
+
+    --shadow-sheet: 0 1px 1px rgba(0, 0, 0, 0.5), 0 4px 12px -6px rgba(0, 0, 0, 0.6);
+    --shadow-lift: 0 1px 2px rgba(0, 0, 0, 0.55), 0 12px 24px -10px rgba(0, 0, 0, 0.7);
+  }
+}

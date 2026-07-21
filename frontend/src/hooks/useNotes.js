@@ -14,6 +14,7 @@ export default function useNotes({ limit = 9 } = {}) {
   const [notes, setNotes] = useState([]);
   const [pagination, setPagination] = useState(EMPTY_PAGINATION);
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState(null);
 
   const [search, setSearch] = useState('');
@@ -55,7 +56,9 @@ export default function useNotes({ limit = 9 } = {}) {
         setPagination(EMPTY_PAGINATION);
       })
       .finally(() => {
-        if (!stale) setLoading(false);
+        if (stale) return;
+        setLoading(false);
+        setHasLoaded(true);
       });
 
     // Responses can arrive out of order while the user types; only the last
@@ -92,6 +95,9 @@ export default function useNotes({ limit = 9 } = {}) {
     notes,
     pagination,
     loading,
+    // Distinguishing the two keeps the grid on screen during a refetch and
+    // reserves the full-page spinner for the very first paint.
+    firstLoad: loading && !hasLoaded,
     error,
     search,
     setSearch,

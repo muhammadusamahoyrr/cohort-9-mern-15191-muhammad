@@ -1,4 +1,4 @@
-import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
@@ -10,10 +10,14 @@ import Register from './pages/Register';
 
 // Shell for every signed-in screen: navbar on top, page below.
 function AppLayout() {
+  // Prose gets a narrower measure than the dashboard grid — long lines are
+  // harder to write into, not just harder to read.
+  const isEditor = useLocation().pathname.startsWith('/notes/');
+
   return (
     <div className="app">
       <Navbar />
-      <main className="page">
+      <main className={`page${isEditor ? ' page--narrow' : ''}`}>
         <Outlet />
       </main>
     </div>
