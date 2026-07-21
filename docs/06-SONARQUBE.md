@@ -14,28 +14,40 @@ First login `admin` / `admin` → set a new password → **My Account → Securi
 
 Run from the repo root after tests have produced coverage:
 
-```bash
+```powershell
 npm run test:coverage --prefix backend
 npm run test:coverage --prefix frontend
-docker run --rm --network host \
-  -v "${PWD}:/usr/src" \
-  -e SONAR_TOKEN \
+
+docker run --rm `
+  -v "${PWD}:/usr/src" `
+  -e SONAR_HOST_URL="http://host.docker.internal:9000" `
+  -e SONAR_TOKEN="$env:SONAR_TOKEN" `
   sonarsource/sonar-scanner-cli
 ```
 
-Using the dockerized scanner avoids installing `sonar-scanner` and Java on Windows.
+Using the dockerized scanner avoids installing `sonar-scanner` and a JDK on Windows.
+
+> **Windows note:** do **not** use `--network host` — on Docker Desktop for Windows it does not give the container access to the host's ports, and the scan fails to reach SonarQube. `host.docker.internal` is the correct address for a container calling a service on the Windows host.
 
 ## `sonar-project.properties` (repo root)
 
 ```properties
 sonar.projectKey=notes-app
 sonar.projectName=Notes App
+
 sonar.sources=backend/src,frontend/src
 sonar.tests=backend/test,frontend/src/__tests__
-sonar.exclusions=**/node_modules/**,**/coverage/**,**/dist/**,**/*.test.js,**/*.test.jsx
+
+# frontend/src/__tests__ sits inside sonar.sources, so it MUST be excluded from
+# sources or the scanner aborts with "File can't be indexed twice".
+sonar.exclusions=**/node_modules/**,**/coverage/**,**/dist/**,**/build/**,frontend/src/__tests__/**,**/*.test.js,**/*.test.jsx
+sonar.test.inclusions=**/*.test.js,**/*.test.jsx,backend/test/**
+
 sonar.javascript.lcov.reportPaths=backend/coverage/lcov.info,frontend/coverage/lcov.info
 sonar.sourceEncoding=UTF-8
 ```
+
+The same trap applies to colocated `*.test.jsx` files — keeping frontend tests in `frontend/src/__tests__/` (as the structure doc specifies) keeps this exclusion to a single line.
 
 ## Quality gate targets
 

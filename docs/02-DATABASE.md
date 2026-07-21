@@ -1,7 +1,24 @@
 # Database Design — MySQL 8
 
-Database name: `notes_app` (tests use `notes_app_test`).
 Engine `InnoDB`, charset `utf8mb4`, collation `utf8mb4_unicode_ci` (emoji-safe).
+
+## Two databases
+
+| Database | Used by | Created by |
+|---|---|---|
+| `notes_app` | dev + runtime | `MYSQL_DATABASE` in `docker-compose.yml` |
+| `notes_app_test` | Mocha integration tests | `db/schema.sql`, explicitly |
+
+`db/schema.sql` therefore creates **both** databases and both sets of tables:
+
+```sql
+CREATE DATABASE IF NOT EXISTS notes_app      CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS notes_app_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+...then applies the identical `users`/`notes` DDL to each. Integration tests truncate `notes_app_test` between cases and never touch dev data. `db/seed.sql` loads into `notes_app` only.
+
+> Scripts in `/docker-entrypoint-initdb.d` run **only on first boot**, when the data volume is empty. After changing `schema.sql`, re-apply with `docker compose down -v && docker compose up -d mysql` — without `-v` the old volume persists and your change silently does nothing.
 
 ## ER overview
 

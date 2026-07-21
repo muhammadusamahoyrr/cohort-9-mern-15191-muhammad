@@ -29,10 +29,11 @@ Incremental plan. Each part is independently runnable/verifiable. **Do not start
 - **Verify:** docs readable, `git log` has initial commit.
 
 ### Part 1 — Infrastructure & database
-- `docker-compose.yml`: MySQL 8 (+ SonarQube service, profile-gated)
-- `db/schema.sql` (users, notes), `db/seed.sql`
-- `.env.example` for backend
-- **Verify:** `docker compose up -d mysql` healthy; schema applies; tables listed.
+- `docker-compose.yml`: MySQL 8 with a healthcheck (+ SonarQube service, profile-gated)
+- `db/schema.sql` — creates **both** `notes_app` and `notes_app_test` with identical tables
+- `db/seed.sql` — demo user + notes, into `notes_app` only
+- `backend/.env.example` and `backend/.env.test.example`
+- **Verify:** `docker compose up -d mysql` reports healthy; both databases exist and each lists `users` + `notes`.
 
 ### Part 2 — Backend skeleton
 - `package.json`, deps, scripts
@@ -57,7 +58,7 @@ Incremental plan. Each part is independently runnable/verifiable. **Do not start
 - **Verify:** full CRUD via REST client; cross-user access denied.
 
 ### Part 5 — Backend tests
-- Unit tests: services + repositories (Sinon stubs), error handler, auth middleware
+- Unit tests: **controllers, services and repositories** (the three layers the spec names), plus error handler and auth middleware
 - Integration tests: auth + notes routes via Supertest against a test DB
 - `npm test`, `npm run test:coverage`
 - **Verify:** all green, coverage report generated.

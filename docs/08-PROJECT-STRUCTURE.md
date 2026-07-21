@@ -23,13 +23,15 @@ Two independent npm packages (`backend/`, `frontend/`) in one repository. No wor
 │   └── PROGRESS.md                     # live status tracker
 │
 ├── db/
-│   ├── schema.sql                      # users, notes, indexes
-│   └── seed.sql                        # demo user + notes (dev only)
+│   ├── schema.sql                      # notes_app + notes_app_test, users, notes, indexes
+│   └── seed.sql                        # demo user + notes (notes_app only, dev)
 │
 ├── backend/
 │   ├── package.json
 │   ├── .env.example                    # copy to .env
+│   ├── .env.test.example               # copy to .env.test (points at notes_app_test)
 │   ├── .eslintrc.json
+│   ├── .prettierrc
 │   ├── .mocharc.json
 │   ├── src/
 │   │   ├── server.js                   # boot, listen, signal handlers
@@ -77,6 +79,8 @@ Two independent npm packages (`backend/`, `frontend/`) in one repository. No wor
     ├── vite.config.js
     ├── jest.config.js
     ├── babel.config.cjs
+    ├── .eslintrc.json                  # react + react-hooks rules
+    ├── .prettierrc
     ├── .env.example                    # VITE_API_URL
     ├── index.html
     └── src/

@@ -24,6 +24,9 @@ Status: ⬜ not started · 🟨 in progress · ✅ verified
 | 2026-07-21 | MySQL 8 via Docker Compose | no local MySQL installed; reproducible and resettable |
 | 2026-07-21 | Vite + React + plain CSS | light, fast dev server and test runs, no UI-library weight |
 | 2026-07-21 | Raw SQL with `mysql2` instead of an ORM | schema design is a project requirement; keeps SQL explicit and reviewable |
+| 2026-07-21 | `schema.sql` creates `notes_app_test` too | integration tests need it; nothing else was creating it |
+| 2026-07-21 | List endpoint returns `preview`, not `contentHtml` | keeps dashboard payloads small; full body only on single-note fetch |
+| 2026-07-21 | Search stays in core scope, not optional Part 10 | `?search=` is cheap once `content_text` exists and the dashboard needs it |
 | 2026-07-21 | JWT in `localStorage` | simple SPA auth; documented trade-off vs httpOnly cookies (XSS exposure) |
 
 ## Open questions

@@ -22,6 +22,7 @@ The project is built in verified increments defined in [docs/00-PLAN.md](docs/00
 | [06-SONARQUBE.md](docs/06-SONARQUBE.md) | quality gate, key rules, scanner setup |
 | [07-GIT-WORKFLOW.md](docs/07-GIT-WORKFLOW.md) | branching and commit conventions |
 | [08-PROJECT-STRUCTURE.md](docs/08-PROJECT-STRUCTURE.md) | full directory layout and naming |
+| [09-REQUIREMENTS-COVERAGE.md](docs/09-REQUIREMENTS-COVERAGE.md) | every brief requirement → where it's designed → which part builds it |
 
 ## Quick start (available from Part 2 onward)
 

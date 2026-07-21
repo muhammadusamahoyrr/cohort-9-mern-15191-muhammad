@@ -64,8 +64,19 @@ Body: `{ email, password }`
 Query: `search` (string), `page` (default 1), `limit` (default 10, max 50), `sort` (`updated_at`|`created_at`|`title`), `order` (`asc`|`desc`).
 → `200 { data: { notes: [...], pagination: { page, limit, total, totalPages } } }`
 
-Note shape: `{ id, title, contentHtml, contentText, isPinned, createdAt, updatedAt }`
-(list responses return a truncated `preview` instead of `contentHtml`).
+Two distinct shapes — the list never ships full note bodies, so a dashboard with 50 long notes stays small:
+
+**List item** (`GET /api/notes` only):
+```json
+{ "id": 12, "title": "Standup notes", "preview": "Discussed the release…", "isPinned": false, "createdAt": "…", "updatedAt": "…" }
+```
+`preview` is the first 160 characters of `content_text`, plain text, never HTML.
+
+**Full note** (`GET /api/notes/:id`, and the response of `POST`/`PUT`):
+```json
+{ "id": 12, "title": "Standup notes", "contentHtml": "<p>…</p>", "isPinned": false, "createdAt": "…", "updatedAt": "…" }
+```
+`contentText` is an internal search column and is never returned by the API.
 
 ### `POST /api/notes`
 Body: `{ title, contentHtml, isPinned? }` — title 1–200 chars.
