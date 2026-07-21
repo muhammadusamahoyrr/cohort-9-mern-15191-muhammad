@@ -49,12 +49,19 @@ export default function Login() {
 
   return (
     <div className="auth">
-      <div className="auth__card">
-        <h1 className="auth__title">Welcome back</h1>
-        <p className="auth__subtitle">Log in to get to your notes.</p>
+      <div className="auth__brand">
+        <span className="wordmark">
+          Margin<span>.</span>
+        </span>
+        <p className="auth__tagline">Somewhere to put it down.</p>
+      </div>
+
+      <div className="sheet auth__card">
+        <h1>Welcome back</h1>
+        <p className="auth__intro">Log in to pick up where you left off.</p>
 
         {formError && (
-          <div className="alert alert--error" role="alert">
+          <div className="alert" role="alert">
             {formError}
           </div>
         )}

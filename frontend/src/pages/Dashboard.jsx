@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ConfirmDialog from '../components/ConfirmDialog';
+import EmptyState from '../components/EmptyState';
 import NoteCard from '../components/NoteCard';
 import SearchBar from '../components/SearchBar';
 import Spinner from '../components/Spinner';
@@ -18,6 +19,7 @@ export default function Dashboard() {
     notes,
     pagination,
     loading,
+    firstLoad,
     error,
     search,
     setSearch,
@@ -45,14 +47,15 @@ export default function Dashboard() {
     }
   };
 
-  const isSearching = search.trim().length > 0;
+  const term = search.trim();
+  const showEmpty = !firstLoad && notes.length === 0 && !error;
 
   return (
     <>
       <div className="page__header">
         <div>
           <h1>Your notes</h1>
-          <p className="muted" style={{ margin: 0 }}>
+          <p className="page__count">
             {pagination.total === 1 ? '1 note' : `${pagination.total} notes`}
           </p>
         </div>
@@ -68,7 +71,7 @@ export default function Dashboard() {
         </label>
         <select
           id="sort"
-          className="sort-select"
+          className="sort"
           value={sortValue}
           onChange={(e) => changeSort(e.target.value)}
         >
@@ -81,37 +84,38 @@ export default function Dashboard() {
       </div>
 
       {(error || deleteError) && (
-        <div className="alert alert--error" role="alert">
+        <div className="alert" role="alert">
           {error || deleteError}
         </div>
       )}
 
-      {loading && <Spinner label="Loading your notes…" />}
+      {/* Announced to screen readers on every query; sighted users read the count above. */}
+      <p className="visually-hidden" role="status">
+        {firstLoad ? 'Loading notes' : `${pagination.total} notes found`}
+      </p>
 
-      {!loading && notes.length === 0 && !error && (
-        <div className="empty">
-          {isSearching ? (
-            <>
-              <h2>No matches</h2>
-              <p>Nothing here matches “{search.trim()}”.</p>
-              <button type="button" className="btn btn--ghost" onClick={() => setSearch('')}>
-                Clear search
-              </button>
-            </>
-          ) : (
-            <>
-              <h2>Nothing written yet</h2>
-              <p>Your notes will show up here once you write one.</p>
-              <Link to="/notes/new" className="btn btn--primary">
-                Write your first note
-              </Link>
-            </>
-          )}
-        </div>
-      )}
+      {firstLoad && <Spinner label="Opening your notebook…" />}
 
-      {!loading && notes.length > 0 && (
-        <ul className="note-grid">
+      {showEmpty &&
+        (term ? (
+          <EmptyState title="No matches" body={`Nothing here matches “${term}”.`}>
+            <button type="button" className="btn btn--secondary" onClick={() => setSearch('')}>
+              Clear search
+            </button>
+          </EmptyState>
+        ) : (
+          <EmptyState
+            title="Nothing written yet"
+            body="Your notes will show up here once you write one."
+          >
+            <Link to="/notes/new" className="btn btn--primary">
+              Write your first note
+            </Link>
+          </EmptyState>
+        ))}
+
+      {notes.length > 0 && (
+        <ul className={`note-grid${loading ? ' note-grid--stale' : ''}`}>
           {notes.map((note) => (
             <NoteCard key={note.id} note={note} onDelete={setPendingDelete} />
           ))}
@@ -122,18 +126,18 @@ export default function Dashboard() {
         <nav className="pagination" aria-label="Pagination">
           <button
             type="button"
-            className="btn btn--ghost"
+            className="btn btn--secondary btn--small"
             onClick={() => setPage(page - 1)}
             disabled={page <= 1 || loading}
           >
             Previous
           </button>
-          <span className="pagination__status">
+          <span className="annotation">
             Page {pagination.page} of {pagination.totalPages}
           </span>
           <button
             type="button"
-            className="btn btn--ghost"
+            className="btn btn--secondary btn--small"
             onClick={() => setPage(page + 1)}
             disabled={page >= pagination.totalPages || loading}
           >

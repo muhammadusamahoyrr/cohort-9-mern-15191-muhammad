@@ -1,26 +1,26 @@
 import { Link, NavLink } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+import UserMenu from './UserMenu';
 
-const linkClass = ({ isActive }) => `navbar__link${isActive ? ' navbar__link--active' : ''}`;
+const linkClass = ({ isActive }) => `nav__link${isActive ? ' nav__link--active' : ''}`;
 
 export default function Navbar() {
-  const { user } = useAuth();
-
   return (
-    <header className="navbar">
-      <nav className="navbar__inner" aria-label="Main">
-        <Link to="/" className="navbar__brand">
-          Notes
+    <header className="nav">
+      <nav className="nav__inner" aria-label="Main">
+        <Link to="/" className="wordmark">
+          Margin<span>.</span>
         </Link>
 
-        <div className="navbar__links">
+        <div className="nav__links">
           <NavLink to="/" end className={linkClass}>
-            Dashboard
+            Notes
           </NavLink>
           <NavLink to="/profile" className={linkClass}>
-            {user?.name?.split(' ')[0] ?? 'Profile'}
+            Profile
           </NavLink>
         </div>
+
+        <UserMenu />
       </nav>
     </header>
   );

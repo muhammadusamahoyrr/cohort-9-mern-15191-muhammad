@@ -41,6 +41,10 @@ Status: ⬜ not started · 🟨 in progress · ✅ verified
 | 2026-07-21 | Response interceptor unwraps `{ success, data }` | callers deal in domain objects; the envelope is handled once instead of at every call site |
 | 2026-07-21 | Quill toolbar limited to the sanitizer's allowlist | offering formats the server strips would silently discard the user's work |
 | 2026-07-21 | Search debounced 300 ms, stale responses discarded | one request per keystroke, and out-of-order replies overwriting newer results |
+| 2026-07-21 | Visual identity: stationery (see `10-DESIGN-SYSTEM.md`) | the UI had no point of view; palette and type are now derived from paper, graphite and pen ink rather than product-UI defaults |
+| 2026-07-21 | Fonts self-hosted via `@fontsource-variable` | no CDN request, identical rendering offline, nothing leaked to a font host |
+| 2026-07-21 | Logout moved into the navbar user menu | it was reachable only from the Profile screen; `LogoutButton` keeps both entry points identical |
+| 2026-07-21 | Editor "dirty" tracked from Quill's `source === 'user'` | Quill rewrites HTML into its own canonical form on load, so comparing values reported unsaved changes the moment a note opened |
 
 ## Open questions
 

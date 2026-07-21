@@ -13,13 +13,20 @@ export default function ConfirmDialog({
   const confirmRef = useRef(null);
 
   useEffect(() => {
+    // Whatever opened the dialog gets focus back when it closes, otherwise
+    // keyboard users are dropped at the top of the document.
+    const opener = document.activeElement;
     confirmRef.current?.focus();
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') onCancel();
     };
     document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      if (opener instanceof HTMLElement) opener.focus();
+    };
   }, [onCancel]);
 
   return (
@@ -31,17 +38,17 @@ export default function ConfirmDialog({
         if (e.target === e.currentTarget) onCancel();
       }}
     >
-      <div className="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+      <div className="sheet dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
         <h2 id="dialog-title">{title}</h2>
         <p>{message}</p>
         <div className="dialog__actions">
-          <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={busy}>
+          <button type="button" className="btn btn--secondary" onClick={onCancel} disabled={busy}>
             {cancelLabel}
           </button>
           <button
             type="button"
             ref={confirmRef}
-            className={`btn ${destructive ? 'btn--danger' : 'btn--primary'}`}
+            className={`btn ${destructive ? 'btn--danger-solid' : 'btn--primary'}`}
             onClick={onConfirm}
             disabled={busy}
           >

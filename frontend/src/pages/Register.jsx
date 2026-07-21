@@ -83,12 +83,19 @@ export default function Register() {
 
   return (
     <div className="auth">
-      <div className="auth__card">
-        <h1 className="auth__title">Create an account</h1>
-        <p className="auth__subtitle">It takes about ten seconds.</p>
+      <div className="auth__brand">
+        <span className="wordmark">
+          Margin<span>.</span>
+        </span>
+        <p className="auth__tagline">Somewhere to put it down.</p>
+      </div>
+
+      <div className="sheet auth__card">
+        <h1>Start a notebook</h1>
+        <p className="auth__intro">Takes about ten seconds.</p>
 
         {formError && (
-          <div className="alert alert--error" role="alert">
+          <div className="alert" role="alert">
             {formError}
           </div>
         )}
@@ -137,7 +144,7 @@ export default function Register() {
             {fieldErrors.password ? (
               <span className="field__error">{fieldErrors.password}</span>
             ) : (
-              <span id="password-hint" className="muted" style={{ fontSize: '0.8rem' }}>
+              <span id="password-hint" className="field__note">
                 At least {PASSWORD_MIN} characters, with a letter and a number.
               </span>
             )}

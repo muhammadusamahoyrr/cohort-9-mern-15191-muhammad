@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -22,8 +22,30 @@ const QUILL_FORMATS = [
 
 const TITLE_MAX = 200;
 
+/**
+ * Quill writes `&nbsp;` between words, so stripping tags with a regex leaves
+ * entities glued to the text and a paragraph counts as one long word. Parsing
+ * into a <template> gives the real text: its content is an inert fragment, so
+ * nothing in the note's HTML can load, run or fire while we read it. The
+ * non-breaking spaces then need no special handling — JS `\s` and `trim()`
+ * both already treat U+00A0 as whitespace.
+ */
+function toText(html) {
+  // textContent runs blocks together — "<li>a</li><li>b</li>" reads as "ab" —
+  // so give every block close a trailing space before parsing.
+  const spaced = (html || '').replace(/<\/(p|li|h[1-6]|blockquote|pre|div)>/gi, '$& ');
+  const template = document.createElement('template');
+  template.innerHTML = spaced;
+  return template.content.textContent || '';
+}
+
 // Quill's "empty" document still has markup in it.
-const isBlankHtml = (html) => !html || html.replace(/<(p|br)\s*\/?>/g, '').trim() === '';
+const isBlankHtml = (html) => toText(html).trim() === '';
+
+function countWords(html) {
+  const text = toText(html).trim();
+  return text ? text.split(/\s+/).length : 0;
+}
 
 export default function NoteEditor() {
   const { id } = useParams();
@@ -40,14 +62,11 @@ export default function NoteEditor() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
 
-  // Snapshot of what's on the server, so "did the user change anything?" is a
-  // comparison rather than a flag that every onChange has to remember to set.
-  const saved = useRef({ title: '', contentHtml: '', isPinned: false });
-
-  const dirty =
-    title !== saved.current.title ||
-    contentHtml !== saved.current.contentHtml ||
-    isPinned !== saved.current.isPinned;
+  // Quill rewrites the HTML it is handed into its own canonical form, so
+  // comparing the current value against the loaded one reports "unsaved
+  // changes" the moment a note opens. Tracking edits the user actually made —
+  // Quill tags those with source 'user' — is the honest signal.
+  const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
     if (isNew) return;
@@ -62,11 +81,6 @@ export default function NoteEditor() {
         setTitle(note.title);
         setContentHtml(note.contentHtml ?? '');
         setIsPinned(Boolean(note.isPinned));
-        saved.current = {
-          title: note.title,
-          contentHtml: note.contentHtml ?? '',
-          isPinned: Boolean(note.isPinned),
-        };
       })
       .catch((err) => {
         if (stale) return;
@@ -110,7 +124,7 @@ export default function NoteEditor() {
       } else {
         await notesApi.updateNote(id, payload);
       }
-      saved.current = { ...payload };
+      setDirty(false);
       navigate('/');
     } catch (err) {
       setError(err.message);
@@ -140,6 +154,14 @@ export default function NoteEditor() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [save, saving, loading]);
 
+  // Closing the tab or hitting back is the one exit the Cancel guard can't see.
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (e) => e.preventDefault();
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
+
   // Rebuilding this object on every render remounts the toolbar and steals focus.
   const quillModules = useMemo(
     () => ({
@@ -154,17 +176,19 @@ export default function NoteEditor() {
     []
   );
 
+  const words = countWords(contentHtml);
+
   if (loading) {
     return <Spinner label="Opening note…" />;
   }
 
   if (loadFailed) {
     return (
-      <div className="not-found">
+      <div className="sheet centered-note">
         <h1>Can’t open that note</h1>
         <p className="muted">{error}</p>
         <button type="button" className="btn btn--primary" onClick={() => navigate('/')}>
-          Back to dashboard
+          Back to your notes
         </button>
       </div>
     );
@@ -177,59 +201,74 @@ export default function NoteEditor() {
       </div>
 
       {error && (
-        <div className="alert alert--error" role="alert">
+        <div className="alert" role="alert">
           {error}
         </div>
       )}
 
-      <label className="visually-hidden" htmlFor="note-title">
-        Title
-      </label>
-      <input
-        id="note-title"
-        className="editor__title"
-        type="text"
-        placeholder="Title"
-        maxLength={TITLE_MAX}
-        value={title}
-        autoFocus
-        onChange={(e) => {
-          setTitle(e.target.value);
-          setTitleError('');
-        }}
-        aria-invalid={Boolean(titleError)}
-      />
-      {titleError && (
-        <p className="field__error" style={{ marginTop: '-0.6rem' }}>
-          {titleError}
-        </p>
-      )}
+      <div className="sheet editor">
+        <label className="visually-hidden" htmlFor="note-title">
+          Title
+        </label>
+        <input
+          id="note-title"
+          className="editor__title"
+          type="text"
+          placeholder={isNew ? 'Untitled note' : 'Title'}
+          maxLength={TITLE_MAX}
+          value={title}
+          autoFocus
+          onChange={(e) => {
+            setTitle(e.target.value);
+            setTitleError('');
+            setDirty(true);
+          }}
+          aria-invalid={Boolean(titleError)}
+        />
 
-      <div className="editor__body">
         <ReactQuill
           theme="snow"
           value={contentHtml}
-          onChange={setContentHtml}
+          onChange={(value, _delta, source) => {
+            setContentHtml(value);
+            if (source === 'user') setDirty(true);
+          }}
           modules={quillModules}
           formats={QUILL_FORMATS}
           placeholder="Start writing…"
         />
       </div>
 
-      <div className="editor__actions">
-        <button type="button" className="btn btn--primary" onClick={save} disabled={saving}>
-          {saving ? <Spinner inline label="Saving" /> : 'Save'}
-        </button>
-        <label className="editor__hint" style={{ display: 'flex', gap: '0.35rem' }}>
+      {titleError && <p className="field__error">{titleError}</p>}
+
+      {/* Save and Cancel stay put at the bottom of the viewport, so they are
+          reachable from anywhere in a long note without scrolling. */}
+      <div className="editor__bar">
+        {/* Both facts at once: swapping one for the other hides the word count
+            for exactly as long as someone is actually writing. */}
+        <span className="editor__status">
+          {dirty && <span className="editor__dot" aria-hidden="true" />}
+          {words === 1 ? '1 word' : `${words} words`}
+          {dirty && ' · unsaved'}
+        </span>
+
+        <label className="editor__status">
           <input
             type="checkbox"
             checked={isPinned}
-            onChange={(e) => setIsPinned(e.target.checked)}
+            onChange={(e) => {
+              setIsPinned(e.target.checked);
+              setDirty(true);
+            }}
           />
-          Pin to top
+          Pin
         </label>
-        <button type="button" className="btn btn--ghost" onClick={cancel} disabled={saving}>
+
+        <button type="button" className="btn btn--secondary" onClick={cancel} disabled={saving}>
           Cancel
+        </button>
+        <button type="button" className="btn btn--primary" onClick={save} disabled={saving}>
+          {saving ? <Spinner inline label="Saving" /> : 'Save note'}
         </button>
       </div>
 

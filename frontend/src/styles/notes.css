@@ -1,113 +1,161 @@
-/* Dashboard list, note cards, search bar, confirm dialog and the editor. */
+/* Dashboard grid, note cards, empty state, dialog and the editor surface. */
+
+/* --- toolbar ------------------------------------------------------------- */
 
 .toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
-  margin-bottom: 1.25rem;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-5);
 }
 
 .search {
   position: relative;
-  flex: 1 1 220px;
+  flex: 1 1 240px;
+  /* A search field the width of the page reads as a form, not a filter. */
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+}
+
+.search__icon {
+  position: absolute;
+  left: var(--sp-3);
+  color: var(--graphite);
+  pointer-events: none;
 }
 
 .search input {
   width: 100%;
-  padding: 0.55rem 2.2rem 0.55rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 0.95rem;
+  padding: var(--sp-3) var(--sp-6) var(--sp-3) var(--sp-7);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
+  background: var(--sheet);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+}
+
+.search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search input:hover {
+  border-color: var(--graphite);
+}
+
+.search input:focus {
+  border-color: var(--ink-blue);
 }
 
 .search__clear {
   position: absolute;
-  top: 50%;
-  right: 0.35rem;
-  transform: translateY(-50%);
-  padding: 0.2rem 0.45rem;
+  right: var(--sp-2);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
   border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 1.1rem;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--graphite);
+  font-size: var(--text-md);
   line-height: 1;
   cursor: pointer;
 }
 
 .search__clear:hover {
-  color: var(--text);
+  background: var(--sheet-sunk);
+  color: var(--ink);
 }
 
-.sort-select {
-  padding: 0.55rem 0.6rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 0.9rem;
+.sort {
+  /* Full width on its own row on phones; pushed right beside search above 600px. */
+  flex: 1 1 100%;
+  min-height: 38px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
+  background: var(--sheet);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
 }
+
+/* --- card grid ----------------------------------------------------------- */
 
 .note-grid {
   display: grid;
-  gap: 0.9rem;
   grid-template-columns: 1fr;
-  list-style: none;
+  gap: var(--sp-4);
   margin: 0;
   padding: 0;
+  list-style: none;
+}
+
+/* Results stay on screen, dimmed, while a new query is in flight — the list
+   never blinks out from under the person typing. */
+.note-grid--stale {
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 .note-card {
   display: flex;
   flex-direction: column;
-  min-height: 150px;
-  padding: 1rem 1.1rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  min-height: 176px;
   transition:
     box-shadow 0.18s ease,
-    transform 0.18s ease;
+    border-color 0.18s ease;
 }
 
 .note-card:hover {
+  border-color: var(--graphite);
   box-shadow: var(--shadow-lift);
-  transform: translateY(-2px);
-}
-
-.note-card__head {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
 }
 
 .note-card__title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: var(--text-md);
   overflow-wrap: anywhere;
 }
 
 .note-card__title a {
-  color: var(--text);
+  color: var(--ink);
+  text-decoration: none;
 }
 
-.note-card__pin {
-  margin-left: auto;
-  font-size: 0.9rem;
-  line-height: 1;
+.note-card__title a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+}
+
+/* Pinned notes are highlighted — the same marker stroke as the active nav item. */
+.note-card--pinned .note-card__title a {
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--highlighter) 55%, transparent),
+    color-mix(in srgb, var(--highlighter) 55%, transparent)
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 0.68em;
+  background-position: 0 82%;
+}
+
+.note-card__flag {
+  display: block;
+  margin-bottom: var(--sp-1);
+  color: var(--graphite);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .note-card__preview {
   flex: 1;
-  margin: 0.5rem 0 0.9rem;
-  color: var(--text-muted);
-  font-size: 0.92rem;
-  /* Three lines, then fade out — keeps every card the same height. */
+  margin: var(--sp-2) 0 var(--sp-4);
+  color: var(--graphite);
+  font-size: var(--text-sm);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -117,58 +165,59 @@
 .note-card__foot {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding-top: 0.7rem;
-  border-top: 1px solid var(--border);
-}
-
-.note-card__date {
-  color: var(--text-muted);
-  font-size: 0.8rem;
+  gap: var(--sp-2);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
 }
 
 .note-card__actions {
   display: flex;
-  gap: 0.35rem;
+  gap: var(--sp-1);
   margin-left: auto;
 }
 
-.note-card__actions .btn {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.85rem;
-}
+/* --- empty state --------------------------------------------------------- */
 
 .empty {
-  padding: 3.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-7) var(--sp-5);
   text-align: center;
-  background: var(--surface-alt);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius);
+}
+
+.empty svg {
+  color: var(--rule);
 }
 
 .empty h2 {
-  margin-bottom: 0.35rem;
+  margin: 0;
+  font-size: var(--text-lg);
 }
 
 .empty p {
-  margin: 0 0 1.25rem;
-  color: var(--text-muted);
+  max-width: 34ch;
+  margin: 0;
+  color: var(--graphite);
+  font-size: var(--text-sm);
 }
+
+.empty .btn {
+  margin-top: var(--sp-2);
+}
+
+/* --- pagination ---------------------------------------------------------- */
 
 .pagination {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.85rem;
-  margin-top: 1.75rem;
+  gap: var(--sp-4);
+  margin-top: var(--sp-6);
 }
 
-.pagination__status {
-  color: var(--text-muted);
-  font-size: 0.88rem;
-}
-
-/* --- confirm dialog --------------------------------------------------- */
+/* --- dialog -------------------------------------------------------------- */
 
 .dialog-backdrop {
   position: fixed;
@@ -177,117 +226,202 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
-  background: rgba(20, 18, 16, 0.45);
+  padding: var(--sp-4);
+  background: color-mix(in srgb, var(--ink) 55%, transparent);
 }
 
 .dialog {
   width: 100%;
-  max-width: 380px;
-  padding: 1.4rem;
-  background: var(--surface);
-  border-radius: var(--radius);
+  max-width: 400px;
+  padding: var(--sp-5) var(--sp-5) var(--sp-5) calc(var(--margin-rule) + var(--sp-5));
   box-shadow: var(--shadow-lift);
 }
 
 .dialog h2 {
-  margin-bottom: 0.4rem;
-  font-size: 1.15rem;
+  font-size: var(--text-md);
 }
 
 .dialog p {
-  margin: 0 0 1.35rem;
-  color: var(--text-muted);
-  font-size: 0.93rem;
+  margin-bottom: var(--sp-5);
+  color: var(--graphite);
+  font-size: var(--text-sm);
 }
 
 .dialog__actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.5rem;
+  gap: var(--sp-2);
 }
 
-/* --- editor ----------------------------------------------------------- */
+/* --- editor -------------------------------------------------------------- */
+
+.editor {
+  overflow: hidden;
+  padding: 0;
+  border-radius: var(--radius-panel);
+}
+
+/* The margin rule runs the full height of the writing surface, so the title,
+   the toolbar and the prose all hang off the same line. */
+.editor::before {
+  z-index: 2;
+}
 
 .editor__title {
   width: 100%;
-  margin-bottom: 0.9rem;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text);
+  padding: var(--sp-4) var(--sp-4) var(--sp-3) calc(var(--margin-rule) + var(--sp-4));
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  background: none;
+  color: var(--ink);
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: var(--text-lg);
   font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
 .editor__title::placeholder {
-  color: var(--text-muted);
-  opacity: 0.6;
+  color: var(--graphite);
+  opacity: 0.7;
 }
 
-.editor__body {
-  background: var(--surface);
-  border-radius: var(--radius);
-  overflow: hidden;
-  border: 1px solid var(--border);
+.editor__title:focus {
+  outline: 0;
+  border-bottom-color: var(--ink-blue);
 }
 
-.editor__body .ql-toolbar {
+.editor .ql-toolbar.ql-snow {
+  padding: var(--sp-2) var(--sp-3) var(--sp-2) calc(var(--margin-rule) + var(--sp-3));
   border: 0;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-alt);
+  border-bottom: 1px solid var(--rule);
+  background: var(--sheet-sunk);
+  font-family: var(--font-body);
 }
 
-.editor__body .ql-container {
+.editor .ql-container.ql-snow {
   border: 0;
   font-family: var(--font-body);
-  font-size: 1rem;
+  font-size: var(--text-base);
 }
 
-.editor__body .ql-editor {
-  min-height: 320px;
-  color: var(--text);
+.editor .ql-editor {
+  min-height: 46vh;
+  padding: var(--sp-5) var(--sp-4) var(--sp-6) calc(var(--margin-rule) + var(--sp-4));
+  color: var(--ink);
+  line-height: 1.7;
 }
 
-.editor__body .ql-editor.ql-blank::before {
-  color: var(--text-muted);
-  font-style: normal;
+.editor .ql-editor.ql-blank::before {
+  left: calc(var(--margin-rule) + var(--sp-4));
+  right: var(--sp-4);
+  color: var(--graphite);
+  font-family: var(--font-display);
+  font-style: italic;
 }
 
-/* Quill ships light-mode icon colours; nudge them for the dark palette. */
-@media (prefers-color-scheme: dark) {
-  .editor__body .ql-toolbar .ql-stroke {
-    stroke: var(--text-muted);
-  }
-  .editor__body .ql-toolbar .ql-fill {
-    fill: var(--text-muted);
-  }
-  .editor__body .ql-toolbar .ql-picker-label {
-    color: var(--text-muted);
-  }
+.editor .ql-editor h1,
+.editor .ql-editor h2,
+.editor .ql-editor h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
 }
 
-.editor__actions {
+.editor .ql-editor blockquote {
+  border-left: 2px solid var(--highlighter);
+  color: var(--graphite);
+  font-family: var(--font-display);
+  font-style: italic;
+}
+
+.editor .ql-editor pre.ql-syntax {
+  background: var(--sheet-sunk);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+/* Quill's chrome is drawn for a white page; retint it for both schemes. */
+.editor .ql-snow .ql-stroke {
+  stroke: var(--graphite);
+}
+.editor .ql-snow .ql-fill {
+  fill: var(--graphite);
+}
+.editor .ql-snow .ql-picker {
+  color: var(--graphite);
+}
+.editor .ql-snow .ql-picker-options {
+  background: var(--sheet);
+  border-color: var(--rule);
+}
+.editor .ql-snow button:hover .ql-stroke,
+.editor .ql-snow button.ql-active .ql-stroke,
+.editor .ql-snow .ql-picker-label:hover {
+  stroke: var(--ink-blue);
+  color: var(--ink-blue);
+}
+.editor .ql-snow button:hover .ql-fill,
+.editor .ql-snow button.ql-active .ql-fill {
+  fill: var(--ink-blue);
+}
+
+/* Save and Cancel stay anchored to the bottom of the viewport while writing. */
+.editor__bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  margin-top: 1.25rem;
+  gap: var(--sp-3);
+  margin: var(--sp-4) calc(var(--sp-4) * -1) 0;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--sheet);
+  border-top: 1px solid var(--rule);
 }
 
-.editor__actions .btn--ghost {
+.editor__status {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--graphite);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
+.editor__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red-pen);
+}
+
+/* The action pair sits hard right; status and the pin toggle keep the left. */
+.editor__bar .btn--secondary {
   margin-left: auto;
 }
 
-.editor__hint {
-  color: var(--text-muted);
-  font-size: 0.83rem;
+.editor__bar label.editor__status {
+  cursor: pointer;
 }
 
 @media (min-width: 600px) {
   .note-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sort {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+
+  .editor__bar {
+    margin-right: 0;
+    margin-left: 0;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-control);
   }
 }
 
