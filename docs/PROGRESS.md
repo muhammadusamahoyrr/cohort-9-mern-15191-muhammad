@@ -10,8 +10,8 @@ Status: ⬜ not started · 🟨 in progress · ✅ verified
 | 3 | Auth backend (register/login/logout/me, JWT middleware) | ⬜ | |
 | 4 | Notes CRUD backend (+ ownership, search, pagination) | ⬜ | |
 | 5 | Backend tests (Mocha/Chai/Sinon/Supertest + coverage) | ⬜ | |
-| 6 | Frontend skeleton (Vite, routing, auth context, api client) | ⬜ | |
-| 7 | Frontend screens (login, dashboard, editor, profile) | ⬜ | |
+| 6 | Frontend skeleton (Vite, routing, auth context, api client) | ✅ | `npm run build` clean; unauthenticated visit redirects to `/login` |
+| 7 | Frontend screens (login, dashboard, editor, profile) | ✅ | all four screens driven end-to-end in a browser against a stub API |
 | 8 | Frontend tests (Jest + RTL) | ⬜ | |
 | 9 | Quality gate (ESLint, Prettier, SonarQube scan) | ⬜ | |
 | 10 | Optional extras (Socket.IO, export/import, filters) | ⬜ | |
@@ -37,6 +37,10 @@ Status: ⬜ not started · 🟨 in progress · ✅ verified
 | 2026-07-21 | UTC end to end (`TZ=UTC`, pool `timezone: 'Z'`) | otherwise timestamps shift by the host offset — invisible on a UTC CI box |
 | 2026-07-21 | Sanitize on read as well as write | write-only sanitizing trusts every pre-existing/seeded row forever |
 | 2026-07-21 | JWT in `localStorage` | simple SPA auth; documented trade-off vs httpOnly cookies (XSS exposure) |
+| 2026-07-21 | 401 interceptor skips `/auth/login` and `/auth/register` | a wrong password is a 401 too; redirecting there wipes the form and hides the message |
+| 2026-07-21 | Response interceptor unwraps `{ success, data }` | callers deal in domain objects; the envelope is handled once instead of at every call site |
+| 2026-07-21 | Quill toolbar limited to the sanitizer's allowlist | offering formats the server strips would silently discard the user's work |
+| 2026-07-21 | Search debounced 300 ms, stale responses discarded | one request per keystroke, and out-of-order replies overwriting newer results |
 
 ## Open questions
 

@@ -27,9 +27,7 @@ export default class ErrorBoundary extends Component {
     return (
       <div className="page not-found">
         <h1>Something broke</h1>
-        <p className="muted">
-          The page hit an unexpected error. Reloading usually clears it.
-        </p>
+        <p className="muted">The page hit an unexpected error. Reloading usually clears it.</p>
         <button type="button" className="btn btn--primary" onClick={() => window.location.reload()}>
           Reload
         </button>

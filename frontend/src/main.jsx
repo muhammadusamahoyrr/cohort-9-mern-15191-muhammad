@@ -11,7 +11,9 @@ import './styles/notes.css';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <BrowserRouter>
+      {/* Opt in to the v6.4+ behaviour now — it silences the upgrade warnings
+          and there is nothing here that depends on the old semantics. */}
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
           <App />
         </AuthProvider>
