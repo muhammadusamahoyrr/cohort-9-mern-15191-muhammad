@@ -1,5 +1,7 @@
 # Notes App
 
+Cohort 9 MERN (Node.js + React) assignment, Muhammad Usama.
+
 Full-stack notes application: users sign up, log in, and manage their own rich-text notes.
 
 **Stack:** Node.js + Express, React (Vite), MySQL 8, Pino, Mocha/Chai (backend tests), Jest + RTL (frontend tests), SonarQube, Docker, Git
