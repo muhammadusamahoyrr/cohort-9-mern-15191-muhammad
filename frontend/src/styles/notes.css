@@ -318,7 +318,7 @@
 }
 
 .editor__title::placeholder {
-  color: currentColor;
+  color: currentcolor;
   opacity: 0.4;
 }
 
@@ -456,7 +456,7 @@
 .editor__body .ql-editor.ql-blank::before {
   left: 63px;
   right: 63px;
-  color: currentColor;
+  color: currentcolor;
   opacity: 0.4;
   font-style: normal;
 }
@@ -748,7 +748,7 @@
 }
 
 .todo__text::placeholder {
-  color: currentColor;
+  color: currentcolor;
   opacity: 0.35;
 }
 
@@ -833,7 +833,7 @@
 }
 
 .filedrop--over {
-  outline: 2px dashed currentColor;
+  outline: 2px dashed currentcolor;
   outline-offset: -10px;
 }
 

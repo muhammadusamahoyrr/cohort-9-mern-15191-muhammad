@@ -51,7 +51,7 @@ a {
 }
 
 a:hover {
-  text-decoration-color: currentColor;
+  text-decoration-color: currentcolor;
 }
 
 :where(a, button, input, textarea, select, [tabindex]):focus-visible {
@@ -264,8 +264,8 @@ input[type='checkbox'] {
   display: inline-block;
   width: 1rem;
   height: 1rem;
-  border: 2px solid color-mix(in srgb, currentColor 25%, transparent);
-  border-top-color: currentColor;
+  border: 2px solid color-mix(in srgb, currentcolor 25%, transparent);
+  border-top-color: currentcolor;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
