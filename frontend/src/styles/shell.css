@@ -143,24 +143,18 @@
   background: var(--row-active);
 }
 
-/* three-pane frame */
+/* two-pane frame: the list beside the editor */
 
 .shell {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: var(--sidebar-w) var(--list-w) 1fr;
+  grid-template-columns: var(--list-w) 1fr;
 }
 
-/* Expanded: the note takes the window and the two left panes fold away. */
+/* Expanded: the note takes the window and the list folds away. */
 .shell--expanded {
-  grid-template-columns: 0 0 1fr;
-}
-
-.shell--expanded .rail,
-.shell--expanded .shell__list {
-  overflow: hidden;
-  visibility: hidden;
+  grid-template-columns: 0 1fr;
 }
 
 .shell__list,
@@ -173,63 +167,7 @@
 
 /* nav rail */
 
-.rail {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  border-right: 1px solid var(--rule);
-}
-
-.rail__scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding-top: var(--sp-2);
-}
-
-.rail__foot {
-  flex: none;
-  padding: var(--sp-2) 0;
-  border-top: 1px solid var(--rule);
-}
-
 /* Groups are separated by the same hairline used between panes. */
-.rail__group {
-  padding: var(--sp-2) 0;
-  border-top: 1px solid var(--rule);
-}
-
-.rail__scroll > .navrow:first-child {
-  margin-bottom: var(--sp-2);
-}
-
-.navrow {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  width: calc(100% - var(--nav-inset) * 2);
-  min-height: var(--nav-row-h);
-  margin: 0 var(--nav-inset) var(--nav-row-gap);
-  padding: var(--sp-1);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--ink-strong);
-  font: inherit;
-  font-size: var(--text-sm);
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background var(--transition-speed) var(--ease-out-cubic);
-}
-
-.navrow svg {
-  flex: none;
-}
-
-.navrow:hover {
-  background: var(--row-hover);
-}
 
 .navrow--active {
   background: var(--row-active);
@@ -237,51 +175,10 @@
 
 /* Unbuilt views still read as part of the rail. Dimming them would say
    broken rather than not here yet. */
-.navrow:disabled {
-  cursor: default;
-}
-
-.navrow:disabled:hover {
-  background: none;
-}
 
 /* Section headings: "Notebooks", "Boards", "Tags". */
-.rail__label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 0 var(--nav-inset) var(--sp-2);
-  font-size: var(--text-sm);
-  font-weight: 700;
-}
-
-.rail__add {
-  display: inline-flex;
-  padding: 2px;
-  border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: inherit;
-  cursor: pointer;
-}
-
-.rail__add:hover {
-  background: var(--row-hover);
-}
 
 /* Notebook cover: a small spine-and-board, tinted per notebook. */
-.rail__cover {
-  flex: none;
-  width: 20px;
-  height: 22px;
-  border-radius: 2px 4px 4px 2px;
-  box-shadow: inset 2px 0 0 rgba(0, 0, 0, 0.18);
-}
-
-.rail__empty {
-  margin: 0 var(--nav-inset);
-  font-size: var(--text-sm);
-}
 
 /* dropdown menu */
 
@@ -596,41 +493,13 @@
 }
 
 /* responsive
-   Three panes only fit on a wide screen. Below that the rail drops to icons,
-   and below that again the list and the editor take turns on one column. */
-
-@media (max-width: 1080px) {
-  .shell {
-    grid-template-columns: 56px var(--list-w) 1fr;
-  }
-
-  /* labels go, icons stay, so the rail is still navigable */
-  .rail .navrow > span:not(.rail__cover),
-  .rail__label,
-  .rail__empty {
-    display: none;
-  }
-
-  .rail__group {
-    padding: var(--sp-1) 0;
-  }
-
-  .navrow {
-    justify-content: center;
-    width: calc(100% - var(--sp-2) * 2);
-    margin-inline: var(--sp-2);
-  }
-}
+   Below 760px the list and the editor take turns on a single column. */
 
 @media (max-width: 760px) {
   /* One pane at a time: the list, until a note is open. */
   .shell,
   .shell--expanded {
     grid-template-columns: 1fr;
-  }
-
-  .rail {
-    display: none;
   }
 
   .shell__editor {
@@ -668,16 +537,6 @@
   background: rgba(0, 0, 0, 0.35);
 }
 
-.drawer {
-  display: flex;
-  flex-direction: column;
-  width: var(--drawer-w);
-  max-width: 100%;
-  background: var(--sheet);
-  box-shadow: var(--shadow-popover);
-  animation: drawer-in 0.24s var(--ease-out-cubic);
-}
-
 @keyframes drawer-in {
   from {
     transform: translateX(100%);
@@ -686,135 +545,11 @@
 
 /* Title is centred in the panel, so the close button is taken out of flow
    rather than pushing it off-centre. */
-.drawer__head {
-  position: relative;
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 56px;
-  padding: 0 var(--sp-4);
-}
-
-.drawer__head .iconbtn {
-  position: absolute;
-  left: var(--sp-2);
-}
-
-.drawer__title {
-  margin: 0;
-  font-size: var(--text-md);
-  /* 1.5 leading gives the 27px box the reference centres in its 56px band. */
-  line-height: 1.5;
-  font-weight: 700;
-}
-
-.drawer__scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 0 var(--sp-4) var(--sp-6);
-}
-
-.setgroup {
-  padding: var(--sp-3) 0 var(--sp-4);
-  border-top: 1px solid var(--rule);
-}
-
-.setgroup:first-child {
-  border-top: 0;
-}
-
-.setgroup__title {
-  margin: 0 0 var(--sp-3);
-  font-size: var(--text-sm);
-  font-weight: 700;
-}
-
-.setrow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-4);
-  min-height: 47px;
-}
-
-.setrow__label {
-  font-size: var(--text-sm);
-}
-
-.setrow__hint {
-  margin: var(--sp-1) 0 0;
-  color: var(--graphite);
-  font-size: var(--text-xs);
-}
-
-.setrow__control {
-  flex: none;
-}
 
 /* toggle switch */
 
-.toggle {
-  display: inline-flex;
-  align-items: center;
-  /* Padding gives the 30x16 pill a full-size hit target. */
-  padding: var(--sp-2);
-  margin: calc(var(--sp-2) * -1);
-  cursor: pointer;
-}
-
-.toggle input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.toggle__track {
-  display: block;
-  width: 30px;
-  height: 16px;
-  padding: 2px;
-  border-radius: 10px;
-  background: var(--toggle-off);
-  transition: background var(--transition-speed) var(--ease-out-cubic);
-}
-
 /* The knob takes the surface colour so it reads against the track in both
    themes. A white one vanishes on night mode's light "on" track. */
-.toggle__knob {
-  display: block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--sheet);
-  transition: transform var(--transition-speed) var(--ease-out-cubic);
-}
-
-.toggle input:checked + .toggle__track {
-  background: var(--action);
-}
-
-.toggle input:checked + .toggle__track .toggle__knob {
-  transform: translateX(14px);
-}
-
-.toggle input:focus-visible + .toggle__track {
-  outline: 2px solid var(--highlighter);
-  outline-offset: 2px;
-}
-
-.setselect {
-  min-width: 120px;
-  padding: var(--sp-1) var(--sp-2);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-control);
-  background: var(--sheet);
-  color: var(--ink);
-  font: inherit;
-  font-size: var(--text-sm);
-}
 
 /* layout picker */
 
@@ -824,133 +559,19 @@
   padding-top: var(--sp-2);
 }
 
-.layoutpick {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  font: inherit;
-  font-size: var(--text-sm);
-  cursor: pointer;
-}
-
 /* Miniature of each arrangement, drawn in CSS. */
-.layoutpick__art {
-  display: grid;
-  gap: 4px;
-  width: 132px;
-  height: 92px;
-  padding: 8px;
-  border: 2px solid transparent;
-  border-radius: var(--radius-control);
-  outline: 1px solid var(--rule);
-}
-
-.layoutpick--active .layoutpick__art {
-  border-color: var(--ink-strong);
-  outline-color: transparent;
-}
-
-.layoutpick__art > span {
-  border-radius: 2px;
-  background: var(--note-yellow);
-}
-
-.layoutpick__art--grid {
-  grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: 1fr;
-}
-
-.layoutpick__art--grid > span:nth-child(2) {
-  background: var(--note-orange);
-}
-.layoutpick__art--grid > span:nth-child(3) {
-  background: var(--note-pink);
-}
-.layoutpick__art--grid > span:nth-child(4) {
-  background: var(--note-purple);
-}
-.layoutpick__art--grid > span:nth-child(5) {
-  background: var(--note-blue);
-}
-.layoutpick__art--grid > span:nth-child(6) {
-  background: var(--note-green);
-}
 
 /* Left column of cards, right side is the open note. */
-.layoutpick__art--multipane {
-  grid-template-columns: 1fr 1.6fr;
-  grid-auto-rows: 1fr;
-}
-
-.layoutpick__art--multipane > span:nth-child(2) {
-  grid-row: span 3;
-  background: var(--sheet-sunk);
-}
-.layoutpick__art--multipane > span:nth-child(3) {
-  background: var(--note-orange);
-}
-.layoutpick__art--multipane > span:nth-child(5) {
-  background: var(--note-blue);
-}
-.layoutpick__art--multipane > span:nth-child(4),
-.layoutpick__art--multipane > span:nth-child(6) {
-  display: none;
-}
 
 /* settings rows: link + inert states */
 
 /* "Opens another screen" row: value then a chevron turned to point right. */
-.setlink {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-1);
-  padding: var(--sp-1) 0;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  font: inherit;
-  font-size: var(--text-sm);
-  cursor: pointer;
-}
-
-.setlink__value {
-  color: var(--ink);
-}
-
-.setlink__chevron {
-  transform: rotate(-90deg);
-  opacity: 0.5;
-}
 
 /* Rows whose backing feature doesn't exist yet. They keep their real control
    so the drawer reads as designed, but they don't pretend to respond. */
-.setrow--inert .setrow__label,
-.setrow--inert .setlink {
-  opacity: 0.55;
-}
-
-.setrow--inert .setselect,
-.setrow--inert .setlink,
-.setrow--inert .toggle {
-  cursor: default;
-}
-
-.setrow--inert .setselect:disabled {
-  opacity: 0.55;
-  color: var(--ink);
-}
 
 .toggle--off-limits {
   opacity: 0.55;
-}
-
-.setrow__text {
-  min-width: 0;
 }
 
 /* dark menu variant
@@ -1082,217 +703,16 @@
    Date + time fields over a month grid, opening upward from the note's
    action strip. */
 
-.reminder {
-  position: absolute;
-  bottom: calc(100% + var(--sp-3));
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 40;
-  width: 300px;
-  padding: var(--sp-4);
-  border-radius: var(--radius-panel);
-  background: var(--sheet);
-  color: var(--ink);
-  box-shadow: var(--shadow-popover);
-}
-
-.reminder__title {
-  margin: 0 0 var(--sp-3);
-  font-size: var(--text-base);
-}
-
-.reminder__fields {
-  display: flex;
-  gap: var(--sp-2);
-  margin-bottom: var(--sp-3);
-}
-
-.reminder__fields .setselect {
-  flex: 1;
-  min-width: 0;
-}
-
-.reminder__month {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--sp-2);
-}
-
-.reminder__monthname {
-  font-size: var(--text-sm);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.reminder__nav {
-  display: flex;
-  gap: var(--sp-1);
-}
-
-.reminder__nav button {
-  width: 22px;
-  height: 22px;
-  border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--ink);
-  font-size: var(--text-sm);
-  line-height: 1;
-  cursor: pointer;
-}
-
-.reminder__nav button:hover {
-  background: var(--row-hover);
-}
-
-.reminder__grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-  margin-bottom: var(--sp-3);
-}
-
-.reminder__weekday {
-  padding: var(--sp-1) 0;
-  color: var(--graphite);
-  font-size: 10px;
-  font-weight: 700;
-  text-align: center;
-}
-
-.reminder__day {
-  aspect-ratio: 1;
-  border: 0;
-  border-radius: 50%;
-  background: none;
-  color: var(--ink);
-  font: inherit;
-  font-size: var(--text-sm);
-  cursor: pointer;
-}
-
-.reminder__day:hover {
-  background: var(--row-hover);
-}
-
 /* Weekends read warm, as in the reference calendar. */
-.reminder__day--weekend {
-  color: var(--red-pen);
-}
-
-.reminder__day--today {
-  font-weight: 700;
-}
 
 /* Selection wins over both, so it stays legible on a weekend. */
-.reminder__day--on,
-.reminder__day--on:hover {
-  background: var(--action);
-  color: var(--action-ink);
-}
-
-.reminder__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  margin-bottom: var(--sp-2);
-  font-size: var(--text-sm);
-}
-
-.reminder__check {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  margin-bottom: var(--sp-4);
-  font-size: var(--text-sm);
-}
-
-.reminder__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--sp-2);
-}
 
 /* rail collections
    Section controls appear on hover; each row carries its own options menu. */
 
-.rail__labeltools {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  opacity: 0;
-  transition: opacity var(--transition-speed) var(--ease-out-cubic);
-}
-
-.rail__group:hover .rail__labeltools,
-.rail__group:focus-within .rail__labeltools {
-  opacity: 1;
-}
-
 /* the add button stays visible, it's the section's primary action */
-.rail__labeltools > :last-child {
-  opacity: 1;
-}
-
-.rail__chevron svg {
-  transition: transform var(--transition-speed) var(--ease-out-cubic);
-}
-
-.rail__chevron--closed svg {
-  transform: rotate(-90deg);
-}
-
-.railrow {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.railrow .navrow {
-  flex: 1;
-  min-width: 0;
-}
-
-.railrow__name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.railrow__menu {
-  position: absolute;
-  right: var(--nav-inset);
-  opacity: 0;
-}
-
-.railrow:hover .railrow__menu,
-.railrow:focus-within .railrow__menu {
-  opacity: 1;
-}
-
-.railrow__menu .iconbtn {
-  width: 24px;
-  height: 24px;
-}
 
 /* Notebook covers take the colour stored against them. */
-.rail__cover {
-  background: var(--cover, var(--note-orange));
-}
-
-.rail__rename {
-  width: calc(100% - var(--nav-inset) * 2);
-  margin: 0 var(--nav-inset) var(--nav-row-gap);
-  padding: var(--sp-1);
-  border: 1px solid var(--action);
-  border-radius: var(--radius-control);
-  background: var(--sheet);
-  color: var(--ink);
-  font: inherit;
-  font-size: var(--text-sm);
-}
 
 /* Popovers & Submenus */
 .menu {
@@ -1352,85 +772,5 @@
   text-transform: uppercase;
   color: var(--graphite);
   margin: 0;
-}
-
-.popover-card {
-  width: 240px;
-  padding: 12px 16px;
-  box-sizing: border-box;
-}
-
-.popover-card__title {
-  font-size: 15px;
-  font-weight: 700;
-  text-align: center;
-  margin: 0 0 12px 0;
-  color: var(--ink-strong);
-}
-
-.popover-card__search {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 6px 10px;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-control);
-  font-size: 13px;
-  margin-bottom: 16px;
-  background: var(--sheet);
-  color: var(--ink);
-}
-
-.popover-card__empty {
-  text-align: center;
-  color: var(--graphite);
-  font-size: 13px;
-  padding: 20px 0;
-}
-
-.popover-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 200px;
-  overflow-y: auto;
-  margin-bottom: 12px;
-}
-
-.popover-card__checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  cursor: pointer;
-  color: var(--ink);
-}
-
-.popover-card__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding-top: 8px;
-  border-top: 1px solid var(--rule);
-}
-
-.popover-card__btn {
-  flex: 1;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: var(--radius-control);
-  border: 0;
-  cursor: pointer;
-}
-
-.popover-card__btn--clear {
-  background: var(--sheet-sunk);
-  color: var(--ink);
-}
-
-.popover-card__btn--apply {
-  background: var(--action);
-  color: var(--action-ink);
 }
 

@@ -41,12 +41,6 @@ export default function App() {
       >
         <Route element={<Workspace />}>
           <Route path="/" element={<EditorEmpty />} />
-          <Route path="/shared" element={<EditorEmpty />} />
-          <Route path="/reminders" element={<EditorEmpty />} />
-          <Route path="/search" element={null} />
-          <Route path="/trash" element={null} />
-          <Route path="/boards/:boardId" element={null} />
-          <Route path="/notebooks/:notebookId" element={<EditorEmpty />} />
           <Route path="/notes/new" element={<NoteEditor />} />
           <Route path="/notes/:id" element={<NoteEditor />} />
         </Route>

@@ -1,44 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useOutletContext, useParams, useSearchParams } from 'react-router-dom';
-import clsx from 'clsx';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import ColorPicker from '../components/ColorPicker';
 import ConfirmDialog from '../components/ConfirmDialog';
-import ReminderPicker from '../components/ReminderPicker';
-import NoteSidePanel from '../components/NoteSidePanel';
 import TodoEditor from '../components/TodoEditor';
-import DrawCanvas from '../components/DrawCanvas';
-import FileDrop from '../components/FileDrop';
-import MediaPanel from '../components/MediaPanel';
 import { emptyChecklist, parseChecklist, serializeChecklist } from '../utils/todoContent';
 import Menu from '../components/Menu';
 import Spinner from '../components/Spinner';
 import * as notesApi from '../api/notes.api';
-import useSettings from '../hooks/useSettings';
 import { DEFAULT_NOTE_COLOR, TODO_NOTE_COLOR } from '../components/notePalette';
 import {
-  ActivityIcon,
   CloseIcon,
-  CopyIcon,
   ExpandIcon,
-  HistoryIcon,
-  InfoIcon,
   LinkIcon,
-  LockIcon,
-  MergeIcon,
   MoreIcon,
-  MoveIcon,
   PrintIcon,
-  ShareIcon,
   StarIcon,
-  TagIcon,
   TrashIcon,
-  CollaboratorIcon,
-  MailIcon,
-  GlobeIcon,
-  CodeIcon,
-  ExportIcon,
 } from '../components/icons';
 
 // Anything outside this list gets stripped by the server's sanitizer on save.
@@ -83,18 +62,12 @@ export default function NoteEditor() {
   const isNew = !id;
   // the tests render this outside the workspace, where there's no outlet context
   const { expanded = false, setExpanded, refresh } = useOutletContext() ?? {};
-  const { settings } = useSettings();
   const [searchParams] = useSearchParams();
 
   const type = searchParams.get('type');
   // A To Do note swaps the rich text body for a checklist. New notes take the
   // type from the query, existing ones carry it on the record.
   const [isTodo, setIsTodo] = useState(() => type === 'todo');
-  // Draw and capture are session only, there's nowhere to store an image yet.
-  const isDraw = type === 'draw';
-  const isCapture = type === 'capture';
-  const isAttach = type === 'attach';
-  const media = type === 'audio' || type === 'video' ? type : null;
   const [todoItems, setTodoItems] = useState(emptyChecklist);
 
   const [title, setTitle] = useState('');
@@ -104,8 +77,6 @@ export default function NoteEditor() {
     type === 'todo' ? TODO_NOTE_COLOR : DEFAULT_NOTE_COLOR
   );
   const [confirmTrash, setConfirmTrash] = useState(false);
-  const [panel, setPanel] = useState(null); // 'info' | 'collaborators'
-  const [dates, setDates] = useState({ createdAt: null, updatedAt: null });
   const [trashing, setTrashing] = useState(false);
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
@@ -133,7 +104,6 @@ export default function NoteEditor() {
         setContentHtml(note.contentHtml ?? '');
         setIsPinned(Boolean(note.isPinned));
         setColor(note.color || DEFAULT_NOTE_COLOR);
-        setDates({ createdAt: note.createdAt, updatedAt: note.updatedAt });
         if (note.type === 'todo') {
           setIsTodo(true);
           setTodoItems(parseChecklist(note.contentHtml));
@@ -276,15 +246,7 @@ export default function NoteEditor() {
   }
 
   return (
-    <div
-      className={clsx('editor', {
-        'editor--draw': isDraw,
-        'editor--capture': isCapture,
-        'editor--attach': isAttach,
-        'editor--media': media,
-      })}
-      style={{ '--note-color': color }}
-    >
+    <div className="editor" style={{ '--note-color': color }}>
       {/* the title is centred between the two corner buttons */}
       <div className="editor__top">
         <button
@@ -334,18 +296,8 @@ export default function NoteEditor() {
       )}
       {titleError && <p className="field__error">{titleError}</p>}
 
-      {/* spellcheck is inherited, so setting it here reaches the node quill
-          creates without racing its setup */}
-      <div className="editor__body" spellCheck={settings.spellCheck}>
-        {isDraw ? (
-          <DrawCanvas />
-        ) : isCapture ? (
-          <FileDrop kind="capture" />
-        ) : isAttach ? (
-          <FileDrop kind="attach" />
-        ) : media ? (
-          <MediaPanel kind={media} />
-        ) : isTodo ? (
+      <div className="editor__body">
+        {isTodo ? (
           <TodoEditor
             items={todoItems}
             onChange={(next) => {
@@ -369,127 +321,71 @@ export default function NoteEditor() {
       </div>
 
       <div className="editor__bar">
-        {!isDraw && (
-          <span className="editor__status">
-            {dirty && <span className="editor__dot" aria-hidden="true" />}
-            {words === 1 ? '1 word' : `${words} words`}
-            {dirty && ' · unsaved'}
-          </span>
-        )}
+        <span className="editor__status">
+          {dirty && <span className="editor__dot" aria-hidden="true" />}
+          {words === 1 ? '1 word' : `${words} words`}
+          {dirty && ' · unsaved'}
+        </span>
 
-        {!isDraw && (
-          <div className="editor__tools">
-            <ReminderPicker />
+        <div className="editor__tools">
+          <ColorPicker
+            value={color}
+            onChange={(next) => {
+              setColor(next);
+              setDirty(true);
+            }}
+          />
 
-            <ColorPicker
-              value={color}
-              onChange={(next) => {
-                setColor(next);
-                setDirty(true);
-              }}
-            />
-
-            <button
-              type="button"
-              className={clsx('iconbtn', panel === 'info' && 'iconbtn--on')}
-              aria-label="Tags and info"
-              onClick={() => setPanel((p) => (p === 'info' ? null : 'info'))}
-            >
-              <TagIcon />
-            </button>
-
-            <button
-              type="button"
-              className={clsx('iconbtn', panel === 'collaborators' && 'iconbtn--on')}
-              aria-label="Collaborators"
-              onClick={() => setPanel((p) => (p === 'collaborators' ? null : 'collaborators'))}
-            >
-              <CollaboratorIcon />
-            </button>
-
-            <Menu
-              label="Share note"
-              icon={ShareIcon}
-              align="right"
-              dark
-              items={[
-                { key: 'mail', label: 'Mail', icon: MailIcon, disabled: true },
-                { key: 'public', label: 'Public Shareable Link', icon: GlobeIcon, disabled: true },
-                { key: 'embed', label: 'Embed link', icon: CodeIcon, disabled: true },
-                { separator: true },
-                {
-                  key: 'copy',
-                  label: 'Copy note link',
-                  icon: LinkIcon,
-                  onSelect: () => navigator.clipboard?.writeText(window.location.href),
+          <Menu
+            label="More note actions"
+            icon={MoreIcon}
+            align="right"
+            dark
+            items={[
+              {
+                key: 'favorite',
+                label: isPinned ? 'Unpin' : 'Pin',
+                icon: StarIcon,
+                onSelect: () => {
+                  setIsPinned((v) => !v);
+                  setDirty(true);
                 },
-                { key: 'export', label: 'Export as', icon: ExportIcon, disabled: true },
-              ]}
-            />
+              },
+              {
+                key: 'copy',
+                label: 'Copy note link',
+                icon: LinkIcon,
+                onSelect: () => navigator.clipboard?.writeText(window.location.href),
+              },
+              { key: 'print', label: 'Print', icon: PrintIcon, onSelect: () => window.print() },
+              { separator: true },
+              {
+                key: 'trash',
+                label: 'Delete',
+                icon: TrashIcon,
+                danger: true,
+                disabled: isNew,
+                onSelect: () => setConfirmTrash(true),
+              },
+            ]}
+          />
+        </div>
 
-            <Menu
-              label="More note actions"
-              icon={MoreIcon}
-              align="right"
-              dark
-              items={[
-                { key: 'info', label: 'Info', icon: InfoIcon, disabled: true },
-                { key: 'versions', label: 'Versions', icon: HistoryIcon, disabled: true },
-                { key: 'activities', label: 'Note Activities', icon: ActivityIcon, disabled: true },
-                {
-                  key: 'favorite',
-                  label: isPinned ? 'Unfavorite' : 'Favorite',
-                  icon: StarIcon,
-                  onSelect: () => {
-                    setIsPinned((v) => !v);
-                    setDirty(true);
-                  },
-                },
-                { key: 'merge', label: 'Note Merge', icon: MergeIcon, disabled: true },
-                { key: 'lock', label: 'Lock', icon: LockIcon, disabled: true },
-                { key: 'copy', label: 'Copy to', icon: CopyIcon, disabled: true },
-                { key: 'move', label: 'Move to', icon: MoveIcon, disabled: true },
-                { key: 'print', label: 'Print', icon: PrintIcon, onSelect: () => window.print() },
-                { key: 'links', label: 'Associated Links', icon: LinkIcon, disabled: true },
-                { separator: true },
-                {
-                  key: 'trash',
-                  label: 'Trash',
-                  icon: TrashIcon,
-                  danger: true,
-                  disabled: isNew,
-                  onSelect: () => setConfirmTrash(true),
-                },
-              ]}
-            />
-          </div>
-        )}
-
-        {!isDraw && (
-          <button
-            type="button"
-            className="btn btn--primary btn--small"
-            onClick={save}
-            disabled={saving}
-          >
-            {saving ? <Spinner inline label="Saving" /> : 'Save note'}
-          </button>
-        )}
+        <button
+          type="button"
+          className="btn btn--primary btn--small"
+          onClick={save}
+          disabled={saving}
+        >
+          {saving ? <Spinner inline label="Saving" /> : 'Save note'}
+        </button>
       </div>
-
-      {panel && (
-        <NoteSidePanel
-          face={panel}
-          note={{ words, characters: plainText(contentHtml).length, ...dates }}
-          onClose={() => setPanel(null)}
-        />
-      )}
 
       {confirmTrash && (
         <ConfirmDialog
-          title="Move to Trash?"
+          title="Delete this note?"
           message={`"${title || 'Untitled note'}" will be gone for good.`}
-          confirmLabel="Trash"
+          confirmLabel="Delete"
           destructive
           busy={trashing}
           onConfirm={async () => {

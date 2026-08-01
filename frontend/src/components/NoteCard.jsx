@@ -3,11 +3,9 @@ import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import Menu from './Menu';
 import { MoreIcon, StarIcon, TrashIcon } from './icons';
-import useSettings from '../hooks/useSettings';
 import { formatRelative } from '../utils/date';
 
 export default function NoteCard({ note, onTogglePin, onDelete }) {
-  const { settings } = useSettings();
   const linkClass = ({ isActive }) => clsx('notecard', isActive && 'notecard--active');
 
   const actions = [
@@ -39,11 +37,9 @@ export default function NoteCard({ note, onTogglePin, onDelete }) {
           {note.preview && <span className="notecard__preview">{note.preview}</span>}
         </span>
 
-        {settings.showTimeOnNote && (
-          <time className="notecard__date" dateTime={note.updatedAt}>
-            {formatRelative(note.updatedAt)}
-          </time>
-        )}
+        <time className="notecard__date" dateTime={note.updatedAt}>
+          {formatRelative(note.updatedAt)}
+        </time>
 
         {note.isPinned && <span className="notecard__pin" aria-label="Pinned" />}
 

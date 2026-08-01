@@ -1,8 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from '../App';
-import { SettingsProvider } from '../context/SettingsContext';
-import { CollectionsProvider } from '../context/CollectionsContext';
 import useAuth from '../hooks/useAuth';
 
 jest.mock('../hooks/useAuth');
@@ -34,16 +32,12 @@ const renderAt = (route, session = { token: 'abc.123', loading: false }) => {
   useAuth.mockReturnValue({ user: { name: 'Ada Lovelace' }, logout: jest.fn(), ...session });
 
   return render(
-    <SettingsProvider>
-      <CollectionsProvider>
-      <MemoryRouter
-        initialEntries={[route]}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
-        <App />
-      </MemoryRouter>
-      </CollectionsProvider>
-    </SettingsProvider>
+    <MemoryRouter
+      initialEntries={[route]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <App />
+    </MemoryRouter>
   );
 };
 

@@ -13,9 +13,8 @@ const listOf = (notes, pagination = {}) => ({
 
 const renderWorkspace = (route = '/') => renderWithRouter(<Workspace />, { route });
 
-// Search is its own page now, so searching means rendering that route.
-const renderSearch = () => {
-  renderWorkspace('/search');
+const renderWithSearch = () => {
+  renderWorkspace();
   return screen.getByRole('searchbox');
 };
 
@@ -55,7 +54,7 @@ describe('Workspace', () => {
 
   it('sends the typed term to the API and reports when nothing matches', async () => {
     notesApi.listNotes.mockResolvedValue(listOf([buildNote()]));
-    const field = renderSearch();
+    const field = renderWithSearch();
 
     notesApi.listNotes.mockResolvedValue(listOf([]));
     await userEvent.type(field, 'quarterly');
@@ -65,12 +64,12 @@ describe('Workspace', () => {
         expect.objectContaining({ search: 'quarterly', page: 1 })
       )
     );
-    expect(await screen.findByText(/No notes match/)).toBeInTheDocument();
+    expect(await screen.findByText('No matching notes')).toBeInTheDocument();
   });
 
   it('debounces typing into a single request', async () => {
     notesApi.listNotes.mockResolvedValue(listOf([buildNote()]));
-    const field = renderSearch();
+    const field = renderWithSearch();
     await screen.findByRole('link', { name: /Standup notes/ });
 
     notesApi.listNotes.mockClear();
@@ -83,56 +82,25 @@ describe('Workspace', () => {
     expect(notesApi.listNotes).toHaveBeenCalledTimes(1);
   });
 
-  it('offers search options and recent notes until something is typed', async () => {
-    notesApi.listNotes.mockResolvedValue(listOf([buildNote()]));
-    renderSearch();
-
-    expect(screen.getByRole('heading', { name: 'Search Options' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Recent notes' })).toBeInTheDocument();
-    expect(await screen.findByRole('link', { name: /Standup notes/ })).toBeInTheDocument();
-  });
-
-  it('reorders the list from the options menu', async () => {
+  it('puts pinned notes above the rest, then the most recently edited', async () => {
     notesApi.listNotes.mockResolvedValue(
       listOf([
         buildNote({ id: 1, title: 'Zebra', updatedAt: '2026-07-20T10:00:00.000Z' }),
         buildNote({ id: 2, title: 'Apple', updatedAt: '2026-07-21T10:00:00.000Z' }),
+        buildNote({ id: 3, title: 'Pinned one', isPinned: true, updatedAt: '2026-07-01T10:00:00.000Z' }),
       ])
     );
 
     renderWorkspace();
     await screen.findByRole('link', { name: /Apple/ });
 
-    // The sort row is a cycle showing the active mode, so reaching "Title"
-    // means stepping through it rather than picking from a list.
-    await userEvent.click(screen.getByRole('button', { name: 'List options' }));
-    await userEvent.click(screen.getByRole('menuitem', { name: 'Date Modified' }));
+    const titles = within(screen.getByRole('list'))
+      .getAllByRole('link')
+      .map((el) => el.textContent);
 
-    await userEvent.click(screen.getByRole('button', { name: 'List options' }));
-    await userEvent.click(screen.getByRole('menuitem', { name: 'Date Created' }));
-
-    // scope to the card list, otherwise the rail's own links come first
-    await waitFor(() => {
-      const titles = within(screen.getByRole('list'))
-        .getAllByRole('link')
-        .map((el) => el.textContent);
-      expect(titles[0]).toMatch(/Apple/);
-      expect(titles[1]).toMatch(/Zebra/);
-    });
-  });
-
-  it('switches note-card density from the options menu', async () => {
-    notesApi.listNotes.mockResolvedValue(listOf([buildNote()]));
-
-    renderWorkspace();
-    await screen.findByRole('link', { name: /Standup notes/ });
-
-    expect(screen.getByRole('list')).toHaveClass('notecards--medium');
-
-    await userEvent.click(screen.getByRole('button', { name: 'List options' }));
-    await userEvent.click(screen.getByRole('menuitem', { name: 'Small' }));
-
-    expect(screen.getByRole('list')).toHaveClass('notecards--small');
+    expect(titles[0]).toMatch(/Pinned one/);
+    expect(titles[1]).toMatch(/Apple/);
+    expect(titles[2]).toMatch(/Zebra/);
   });
 
   it('narrows the list to pinned notes', async () => {
