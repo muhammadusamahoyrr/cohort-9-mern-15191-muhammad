@@ -1,6 +1,6 @@
 # Project Structure
 
-Two independent npm packages (`backend/`, `frontend/`) in one repository. No workspace tooling — each is installed and run on its own, which keeps Jest and Mocha configs from colliding.
+Two independent npm packages (`backend/`, `frontend/`) in one repository. No workspace tooling: each is installed and run on its own, which keeps the Jest and Mocha configs from colliding.
 
 ```
 10P/
@@ -20,6 +20,8 @@ Two independent npm packages (`backend/`, `frontend/`) in one repository. No wor
 │   ├── 06-SONARQUBE.md                 # quality gate + rules
 │   ├── 07-GIT-WORKFLOW.md              # branching + commits
 │   ├── 08-PROJECT-STRUCTURE.md         # this file
+│   ├── 09-REQUIREMENTS-COVERAGE.md     # brief requirements mapped to parts
+│   ├── 10-DESIGN-SYSTEM.md             # visual language and tokens
 │   └── PROGRESS.md                     # live status tracker
 │
 ├── db/
@@ -79,6 +81,7 @@ Two independent npm packages (`backend/`, `frontend/`) in one repository. No wor
     ├── vite.config.js
     ├── jest.config.js
     ├── babel.config.cjs
+    ├── mock-server.cjs                 # stub API for driving the UI without a backend
     ├── .eslintrc.json                  # react + react-hooks rules
     ├── .prettierrc
     ├── .env.example                    # VITE_API_URL
@@ -90,47 +93,78 @@ Two independent npm packages (`backend/`, `frontend/`) in one repository. No wor
         │   ├── client.js               # axios instance + interceptors
         │   ├── auth.api.js
         │   └── notes.api.js
+        ├── config/
+        │   └── env.js                  # the only file reading import.meta.env
         ├── context/
-        │   └── AuthContext.jsx
+        │   ├── AuthContext.jsx
+        │   ├── CollectionsContext.jsx  # notebooks + boards, localStorage backed
+        │   └── SettingsContext.jsx     # preferences, localStorage backed
         ├── hooks/
         │   ├── useAuth.js
-        │   └── useNotes.js
+        │   ├── useCollections.js
+        │   ├── useDismiss.js           # click-outside + Escape for popovers
+        │   ├── useNotes.js
+        │   └── useSettings.js
         ├── components/
-        │   ├── ProtectedRoute.jsx
-        │   ├── Navbar.jsx              # shell: wordmark, nav, user menu
-        │   ├── UserMenu.jsx            # avatar dropdown: profile + logout
+        │   ├── AppHeader.jsx           # top bar: brand, Write split button, settings
+        │   ├── Sidebar.jsx             # nav rail
+        │   ├── CollectionGroup.jsx     # notebooks / boards rail sections
+        │   ├── Brand.jsx
         │   ├── Avatar.jsx
+        │   ├── UserMenu.jsx            # avatar dropdown: profile + logout
         │   ├── LogoutButton.jsx        # logout + confirm, used in two places
+        │   ├── NoteList.jsx            # list pane
         │   ├── NoteCard.jsx
-        │   ├── SearchBar.jsx
-        │   ├── EmptyState.jsx          # ruled-sheet illustration + action
+        │   ├── ListOptionsMenu.jsx     # sort, filter, preview size
+        │   ├── NoteSidePanel.jsx       # info / collaborators panel
+        │   ├── TodoEditor.jsx          # checklist body for To Do notes
+        │   ├── DrawCanvas.jsx          # sketch surface for Draw notes
+        │   ├── FileDrop.jsx            # capture + attach drop target
+        │   ├── MediaPanel.jsx          # audio + video recording
+        │   ├── ColorPicker.jsx
+        │   ├── ReminderPicker.jsx
+        │   ├── SettingsDrawer.jsx
+        │   ├── Menu.jsx                # shared dropdown
         │   ├── ConfirmDialog.jsx
         │   ├── Spinner.jsx
-        │   └── ErrorBoundary.jsx
+        │   ├── ProtectedRoute.jsx
+        │   ├── ErrorBoundary.jsx
+        │   ├── icons.jsx               # lucide icons, aliased in one place
+        │   ├── listViews.js            # per-view list pane config
+        │   ├── notePalette.js          # note colour swatches
+        │   └── settingsSchema.js       # settings drawer described as data
         ├── pages/
         │   ├── Login.jsx               # Screen 1
         │   ├── Register.jsx            # Screen 1
-        │   ├── Dashboard.jsx           # Screen 2
+        │   ├── Workspace.jsx           # Screen 2 shell: rail + list + editor
         │   ├── NoteEditor.jsx          # Screen 3
+        │   ├── EditorEmpty.jsx         # right pane when no note is open
         │   ├── Profile.jsx             # Screen 4
+        │   ├── SearchView.jsx
+        │   ├── BoardView.jsx
+        │   ├── TrashView.jsx
         │   └── NotFound.jsx
         ├── utils/
-        │   └── date.js                 # relative + absolute timestamp formatting
+        │   ├── date.js                 # relative + absolute timestamp formatting
+        │   └── todoContent.js          # checklist HTML parse/serialize
         ├── styles/
         │   ├── tokens.css              # the design system (see 10-DESIGN-SYSTEM.md)
         │   ├── base.css                # elements, buttons, fields, .sheet surface
-        │   ├── shell.css               # navbar, containers, auth, profile
-        │   └── notes.css               # grid, cards, dialog, editor
+        │   ├── shell.css               # header, rail, containers, auth, profile
+        │   └── notes.css               # list pane, cards, editor, dialogs
         └── __tests__/
+            ├── helpers/render.jsx
+            ├── api/  context/  hooks/  utils/
+            └── pages/  components/
 ```
 
 ## Naming conventions
 
-- Backend files: `<domain>.<layer>.js` (`notes.service.js`). Directories plural for layers, singular for the domain inside a filename.
+- Backend files: `<domain>.<layer>.js` (`notes.service.js`). Directories are plural for layers, singular for the domain inside a filename.
 - React components and pages: `PascalCase.jsx`, one component per file.
 - Hooks: `useThing.js`. Context: `ThingContext.jsx`.
 - Tests: `<subject>.test.js` / `.test.jsx`, mirroring the source path.
-- Environment variables: `SCREAMING_SNAKE_CASE`; frontend ones must be prefixed `VITE_`.
+- Environment variables: `SCREAMING_SNAKE_CASE`, and frontend ones must be prefixed `VITE_`.
 
 ## Ports
 

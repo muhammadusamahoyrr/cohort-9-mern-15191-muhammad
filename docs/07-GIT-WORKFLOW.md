@@ -9,7 +9,7 @@
 | `feature/<part>-<slug>` | one branch per plan part |
 | `fix/<slug>` | bug fixes |
 
-Feature branches come off `develop` and merge back with `--no-ff` so each part stays visible as a unit in the history.
+Feature branches come off `develop` and merge back with `--no-ff`, so each part stays visible as a unit in the history.
 
 ```bash
 git checkout develop
@@ -36,7 +36,7 @@ feature/08-frontend-tests
 feature/09-quality-sonarqube
 ```
 
-## Commit messages — Conventional Commits
+## Commit messages (Conventional Commits)
 
 ```
 <type>(<scope>): <imperative summary>
@@ -52,11 +52,11 @@ test(notes): cover ownership enforcement in notes service
 docs(api): document pagination parameters for GET /api/notes
 ```
 
-Rules: imperative mood, ≤ 72-char subject, no trailing period, one logical change per commit. Body explains *why* when the reason is not obvious from the diff.
+Rules: imperative mood, subject no longer than 72 chars, no trailing period, one logical change per commit. Use the body to explain *why* when the reason isn't obvious from the diff.
 
 ## Never commit
 
-`.env`, `node_modules/`, `dist/`, `coverage/`, `*.log`, `.sonar/`, MySQL data volumes, SonarQube tokens, real user data. Covered by `.gitignore` — check `git status` before every commit.
+`.env`, `node_modules/`, `dist/`, `coverage/`, `*.log`, `.sonar/`, MySQL data volumes, SonarQube tokens, real user data. `.gitignore` covers these, but check `git status` before every commit anyway.
 
 ## Before pushing
 
@@ -64,4 +64,4 @@ Rules: imperative mood, ≤ 72-char subject, no trailing period, one logical cha
 npm run lint && npm test
 ```
 
-A branch that does not build or whose tests fail does not get merged.
+A branch that doesn't build, or whose tests fail, doesn't get merged.

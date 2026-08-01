@@ -2,7 +2,7 @@
 
 ## Logger
 
-Single instance in `backend/src/config/logger.js`, imported everywhere. No `console.log` in application code — ESLint enforces this.
+Single instance in `backend/src/config/logger.js`, imported everywhere. No `console.log` in application code, and ESLint enforces that.
 
 ```
 level:      LOG_LEVEL (dev: debug, prod: info, test: silent)
@@ -24,15 +24,15 @@ redact: [
   '*.token'
 ]
 ```
-Secrets must never reach the log stream. Verified by a unit test that logs a payload containing a password and asserts `[Redacted]`.
+Secrets must never reach the log stream. There's a unit test that logs a payload containing a password and asserts `[Redacted]`.
 
-## HTTP logging — `pino-http`
+## HTTP logging with `pino-http`
 
-Mounted as the first middleware so every request is logged even if a later one throws.
+Mounted as the first middleware, so every request is logged even if a later one throws.
 
-- `genReqId`: reuse `x-request-id` header if present, else generate a UUID. The id is echoed in error responses and set on the `x-request-id` response header.
-- `customLogLevel`: `< 400` → info, `4xx` → warn, `5xx` or transport error → error.
-- Serializers trim `req` to `{ id, method, url, remoteAddress }` and `res` to `{ statusCode }` — full headers are noise.
+- `genReqId`: reuse the `x-request-id` header if present, otherwise generate a UUID. The id is echoed in error responses and set on the `x-request-id` response header.
+- `customLogLevel`: under 400 is info, 4xx is warn, 5xx or a transport error is error.
+- Serializers trim `req` to `{ id, method, url, remoteAddress }` and `res` to `{ statusCode }`. Full headers are noise.
 - `/api/health` is logged at `debug` to keep polling out of production logs.
 
 ## What gets logged, deliberately
@@ -65,16 +65,16 @@ Every async controller is wrapped so a rejected promise reaches Express's error 
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 ```
 
-## Global error handler — `middlewares/error.middleware.js`
+## Global error handler: `middlewares/error.middleware.js`
 
-Registered **last**, after all routes. Behavior:
+Registered **last**, after all routes. What it does:
 
-1. Normalize: known library errors are translated — `ER_DUP_ENTRY` → 409, `JsonWebTokenError` → 401 `INVALID_TOKEN`, `TokenExpiredError` → 401 `TOKEN_EXPIRED`, Joi `ValidationError` → 422. Anything else → 500 `INTERNAL_ERROR`.
-2. Log: 5xx at `error` with the full stack, 4xx at `warn` without it.
-3. Respond with the standard error envelope. **Stack traces are only included when `NODE_ENV !== 'production'`**, and internal 500 messages are replaced with a generic string so DB/driver internals never leak.
+1. Normalize. Known library errors get translated: `ER_DUP_ENTRY` to 409, `JsonWebTokenError` to 401 `INVALID_TOKEN`, `TokenExpiredError` to 401 `TOKEN_EXPIRED`, Joi `ValidationError` to 422. Anything else becomes 500 `INTERNAL_ERROR`.
+2. Log. 5xx at `error` with the full stack, 4xx at `warn` without it.
+3. Respond with the standard error envelope. **Stack traces are only included when `NODE_ENV !== 'production'`**, and internal 500 messages are swapped for a generic string so DB and driver internals never leak.
 
-A `notFoundHandler` sits just before it to convert unmatched routes into a 404 `AppError`.
+A `notFoundHandler` sits just before it to turn unmatched routes into a 404 `AppError`.
 
 ## Process-level safety net
 
-`server.js` registers handlers for `unhandledRejection`, `uncaughtException`, `SIGINT` and `SIGTERM`: log at fatal, close the HTTP server and the MySQL pool, then exit non-zero. Never leave the process running in an unknown state.
+`server.js` registers handlers for `unhandledRejection`, `uncaughtException`, `SIGINT` and `SIGTERM`. Each logs at fatal, closes the HTTP server and the MySQL pool, then exits non-zero. Don't leave the process running in an unknown state.

@@ -2,13 +2,13 @@
 
 Full-stack notes application: users sign up, log in, and manage their own rich-text notes.
 
-**Stack:** Node.js + Express · React (Vite) · MySQL 8 · Pino · Mocha/Chai (backend tests) · Jest + RTL (frontend tests) · SonarQube · Docker · Git
+**Stack:** Node.js + Express, React (Vite), MySQL 8, Pino, Mocha/Chai (backend tests), Jest + RTL (frontend tests), SonarQube, Docker, Git
 
 ## Status
 
-Parts 0, 6, 7 and 8 (foundation + frontend + frontend tests) complete — see
+Parts 0, 6, 7 and 8 (foundation + frontend + frontend tests) are done, see
 [docs/PROGRESS.md](docs/PROGRESS.md).
-The backend (Parts 1–5) is next; the frontend is written against the contract in
+The backend (Parts 1-5) is next. The frontend is written against the contract in
 [docs/03-API.md](docs/03-API.md) and expects it on `http://localhost:4000/api`.
 The project is built in verified increments defined in [docs/00-PLAN.md](docs/00-PLAN.md).
 
@@ -25,7 +25,8 @@ The project is built in verified increments defined in [docs/00-PLAN.md](docs/00
 | [06-SONARQUBE.md](docs/06-SONARQUBE.md) | quality gate, key rules, scanner setup |
 | [07-GIT-WORKFLOW.md](docs/07-GIT-WORKFLOW.md) | branching and commit conventions |
 | [08-PROJECT-STRUCTURE.md](docs/08-PROJECT-STRUCTURE.md) | full directory layout and naming |
-| [09-REQUIREMENTS-COVERAGE.md](docs/09-REQUIREMENTS-COVERAGE.md) | every brief requirement → where it's designed → which part builds it |
+| [09-REQUIREMENTS-COVERAGE.md](docs/09-REQUIREMENTS-COVERAGE.md) | each brief requirement, where it's designed, which part builds it |
+| [10-DESIGN-SYSTEM.md](docs/10-DESIGN-SYSTEM.md) | visual language, tokens, layout rules |
 
 ## Quick start (available from Part 2 onward)
 
@@ -43,4 +44,4 @@ npm run dev                         # http://localhost:5173
 
 ## Ports
 
-Frontend `5173` · Backend `4000` · MySQL `3306` · SonarQube `9000`
+Frontend `5173`, backend `4000`, MySQL `3306`, SonarQube `9000`.

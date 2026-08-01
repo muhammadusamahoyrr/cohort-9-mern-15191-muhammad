@@ -1,83 +1,112 @@
 # Design System
 
-The frontend has one visual idea: **stationery**. Notes are ruled stock, graphite and pen
-ink, so the interface is built from those materials rather than from generic product-UI
-conventions. Every token below is defined once in `src/styles/tokens.css` and used
-everywhere — no ad-hoc colours, spacing or radii in component files.
+Every token lives once in `src/styles/tokens.css`. Component files should never introduce
+a colour, radius or spacing value of their own.
+
+The values here were measured off the live Zoho Notebook web app
+(`notebook.zoho.com/app/index.html#/all-notes`) using computed styles, so the numbers are
+mostly transcribed rather than invented. Where we couldn't use the original (the typeface,
+mainly) the substitution is noted below.
 
 ## Palette
 
-Six surface/text colours plus two "marks". The distinction matters: the first six build
-the page, the last two only ever appear as something drawn *on* it.
+The chrome is deliberately neutral. All the colour in the app comes from the notes
+themselves, which is why the surface tokens are greys and the accent is plain black.
 
 | Token | Light | Dark | Used for |
 |---|---|---|---|
-| `--paper` | `#ECEEE9` | `#14181A` | page background — cool grey-green, the colour of recycled notebook stock |
-| `--sheet` | `#FAFBF8` | `#1C2124` | writing surfaces: cards, auth card, editor panel, navbar |
-| `--ink` | `#12211F` | `#E7EBE6` | body text — near-black with a teal cast, never pure `#000` |
-| `--graphite` | `#5E6C68` | `#9AA6A2` | secondary text, timestamps, labels |
-| `--rule` | `#D5DAD3` | `#2E3639` | hairlines, borders, ruled lines |
-| `--ink-blue` | `#17565C` | `#7FC4C9` | primary action, links, focus ring — fountain-pen blue-black |
-| `--highlighter` | `#F0CF4E` | `#C9A93B` | **mark:** active nav swipe, pinned notes. Nothing else. |
-| `--red-pen` | `#9C2F27` | `#E08B80` | **mark:** destructive actions and the margin rule. Nothing else. |
+| `--paper` | `#f7f7f7` | `#1a1a1a` | body background |
+| `--sheet` | `#ffffff` | `#262626` | header, popovers, raised chrome |
+| `--sheet-sunk` | `#f1f1f1` | `#303030` | recessed panels |
+| `--list-surface` | `#f9f9f9` | `#202020` | the note-list pane |
+| `--ink` | `#212121` | `#ececec` | text on app surfaces, inverts with the theme |
+| `--ink-strong` | `#000000` | `#ffffff` | header and nav text |
+| `--note-ink` | `#212121` | `#212121` | text on a note, always dark |
+| `--graphite` | 40% ink | 50% ink | timestamps, secondary meta |
+| `--rule` | `#d7d7d7` @ 36% | white @ 14% | the hairline between panes |
+| `--action` | `#000000` | `#ececec` | primary button, focus |
+| `--red-pen` | `#e42527` | `#ff6b6d` | destructive actions |
 
-Deliberately avoided: cream (`#F4F1EA`-ish) with a terracotta accent, and near-black with a
-single neon accent. Both are what every generated interface currently looks like, and
-neither says anything about writing.
+`--note-ink` is kept separate from `--ink` on purpose. Note surfaces stay a saturated
+colour in both themes, so their text has to stay dark even when the rest of the chrome
+inverts at night.
+
+### Note colours
+
+The sticky-note palette, sampled from the reference app's picker. The chrome itself only
+uses these seven:
+
+`--note-yellow` `#ffed7d` (default), `--note-blue` `#b3d9e6`, `--note-green` `#d1ebb8`,
+`--note-pink` `#ffa8b3`, `--note-purple` `#d1c4e9`, `--note-orange` `#ffc27d`,
+`--note-grey` `#e3e3e3`.
+
+The full 28-swatch grid the colour picker offers lives in `components/notePalette.js`.
 
 ## Type
 
-| Role | Face | Why |
+Zoho ships "Puvi", which is proprietary and can't be redistributed. Public Sans is the
+closest freely-licensed humanist sans, so it carries both display and body:
+
+| Token | Face |
+|---|---|
+| `--font-display` | Public Sans Variable, then Segoe UI, system-ui |
+| `--font-body` | same as display |
+| `--font-mono` | system stack (ui-monospace, Cascadia Mono, SF Mono, Menlo) |
+| `--font-editor` | follows `--font-body` unless the Editor Font setting overrides it |
+
+Newsreader Variable is bundled but only appears if a user picks the serif editor font.
+Both families are self-hosted through `@fontsource-variable/*`, so there's no CDN request,
+the app renders identically offline, and nothing leaks to a font host.
+
+**Sizes** are kept in px because the source app does: 12, 14, 16, 18, 22, 24, 30, 38.
+Line heights are explicit too (`--leading-tight` 22.8px for card titles,
+`--leading-normal` 24px, `--leading-title` 32px for the editor title).
+
+## Spacing, shape, elevation
+
+- **Spacing** (`--sp-1` to `--sp-8`) on a 4px base: 4, 8, 12, 16, 24, 32, 48, 64.
+- **Radius**: 4px controls, 6px note cards, 8px panels.
+- **Elevation**: the chrome is almost entirely flat. `--shadow-sheet` is `none`, and
+  shadows are reserved for things that genuinely float (`--shadow-lift`,
+  `--shadow-popover`).
+
+## Shell geometry
+
+These are the load-bearing numbers. Changing one of them moves the layout.
+
+| Token | Value | What it sets |
 |---|---|---|
-| Display | **Newsreader Variable** | a text serif drawn for reading on screen — editorial, not decorative. Used for headings, note titles, and the "last edited" annotation in italic. |
-| Body / UI | **Public Sans Variable** | neutral grotesque with slightly open apertures; carries labels and controls without competing with the serif. |
-| Mono | system stack | only Quill code blocks need it; not worth a third download. |
+| `--header-h` | 48px | top bar |
+| `--sidebar-w` | 210px | nav rail |
+| `--list-w` | 345px | note-list pane |
+| `--drawer-w` | 440px | settings drawer |
+| `--nav-row-h` | 29px | a nav row |
+| `--nav-inset` | 16px | where nav rows start from the left edge |
+| `--card-h` | 85px | note card at the default preview size |
+| `--card-gap` | 16px | gap between cards |
+| `--measure-max` | 720px | editor body, so prose keeps a readable measure |
 
-Both are self-hosted through `@fontsource-variable/*`. No CDN request, so the app renders
-identically offline and leaks nothing to a font host.
+The layout is three panes: rail, list, editor. `Workspace.jsx` swaps to one pane at a
+time on narrow screens, and the Settings drawer offers a grid layout as an alternative
+to the multipane default.
 
-**Scale** (1.2 ratio, `--text-*`): 12 · 14 · 16 · 19 · 23 · 28 · 34 · 41 px.
-Body copy is 16px/1.6. Display sizes set at 1.15 line-height with `-0.015em` tracking.
+## Theming
 
-## Spacing, radius, elevation
+Night mode is driven by the Settings drawer, which stamps `data-theme` on `<html>`.
+Putting it on the root element means every stylesheet can react to it, including anything
+rendered outside the React tree. The editor font works the same way via
+`data-editor-font`.
 
-- **Spacing** (`--sp-1`…`--sp-8`): 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 px. Nothing in the
-  UI uses a value outside this scale.
-- **Radius**: 2px controls, 4px cards, 6px panels. Paper does not have 16px rounded
-  corners — the restraint is the point, and it separates the app from the pill-shaped
-  default look.
-- **Elevation**: a hairline `--rule` border plus a tight, low-opacity shadow — a sheet
-  lying on a desk, not a floating material card.
+## Legacy aliases
 
-## Signature: the margin rule
-
-Every writing surface — note card, auth card, editor panel — carries a vertical hairline
-in `--red-pen` at low opacity, inset 28px from its left edge, with content starting to its
-right. It is the margin of an exercise book.
-
-This is intentionally *not* the usual thick accent bar flush against the left edge. The
-rule sits inside the surface, the gutter to its left stays empty, and the effect is that
-every piece of content in the app looks written on a page.
-
-Two echoes of the same stationery idea, used sparingly:
-
-- the active nav item gets a **highlighter swipe** — a slightly rotated band of
-  `--highlighter` behind the text — instead of a filled pill;
-- pinned notes get a highlighter band across the top-left corner of the card.
-
-## Layout
-
-- **App shell**: sticky top navbar (wordmark, nav links, avatar menu containing the user's
-  name, Profile and Log out). No sidebar: two destinations do not justify 240px of
-  permanent chrome, and the space is better spent on the notes.
-- **Containers**: `--page-max` 1080px for the dashboard grid; the editor narrows to 760px
-  because measure matters when the content is prose. Horizontal padding steps 16 → 24 →
-  32px across breakpoints.
-- **Breakpoints**: 600px (2-column grid), 900px (3-column), 1024px (full navbar spacing).
-  Mobile-first — every rule is written for the small screen and widened from there.
+`--ink-blue`, `--ink-blue-deep`, `--ink-blue-wash` and `--highlighter` are left over from
+the earlier stationery-themed palette. The auth screens and the profile page still
+reference them, so they're aliased onto the current palette to keep those screens
+coherent. Retire them as those screens get reworked. `--margin-rule` and `--page-max` are
+in the same category and are currently zeroed out.
 
 ## Non-negotiables
 
-Visible keyboard focus on every interactive element (2px `--ink-blue` outline, 2px
-offset) · `prefers-reduced-motion` honoured · `prefers-color-scheme` honoured · all text
-meets WCAG AA against its own background · no colour used as the only carrier of meaning.
+Visible keyboard focus on every interactive element, `prefers-reduced-motion` honoured,
+all text meeting WCAG AA against its own background, and no colour ever used as the only
+carrier of meaning.
