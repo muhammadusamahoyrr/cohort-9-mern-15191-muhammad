@@ -1,0 +1,39 @@
+const OPEN = '☐';
+const DONE = '☑';
+
+const newId = () =>
+  globalThis.crypto?.randomUUID?.() ?? `i${Math.random().toString(36).slice(2)}`;
+
+export const emptyChecklist = () => [{ id: newId(), text: '', done: false }];
+
+export function parseChecklist(html) {
+  if (!html) return emptyChecklist();
+
+  const template = document.createElement('template');
+  template.innerHTML = html;
+
+  const items = [...template.content.querySelectorAll('li')].map((li) => {
+    const raw = (li.textContent || '').trim();
+    const done = raw.startsWith(DONE);
+    return {
+      id: newId(),
+      done,
+      text: done || raw.startsWith(OPEN) ? raw.slice(1).trim() : raw,
+    };
+  });
+
+  return items.length ? items : emptyChecklist();
+}
+
+export function serializeChecklist(items) {
+  const rows = items
+    .filter((item) => item.text.trim() !== '')
+    .map((item) => `<li>${item.done ? DONE : OPEN} ${escapeHtml(item.text.trim())}</li>`)
+    .join('');
+
+  return rows ? `<ul>${rows}</ul>` : '';
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}

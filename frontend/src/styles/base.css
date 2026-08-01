@@ -18,7 +18,8 @@ body {
   color: var(--ink);
   font-family: var(--font-body);
   font-size: var(--text-base);
-  line-height: 1.6;
+  line-height: 1.5;
+  overflow: hidden; /* the panes scroll, the page never does */
   -webkit-font-smoothing: antialiased;
 }
 
@@ -27,7 +28,7 @@ h2,
 h3 {
   margin: 0 0 var(--sp-2);
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.15;
   letter-spacing: -0.015em;
 }
@@ -54,37 +55,28 @@ a:hover {
 }
 
 :where(a, button, input, textarea, select, [tabindex]):focus-visible {
-  outline: 2px solid var(--ink-blue);
+  outline: 2px solid var(--highlighter);
   outline-offset: 2px;
   border-radius: var(--radius-control);
 }
 
-/* --- the writing surface -------------------------------------------------
-   Every sheet carries the margin rule: a hairline set in from the left edge,
-   with the gutter beside it left empty. This is the app's signature. */
+/* the writing surface
+   Frosted glassmorphism card surfaces without rigid margins. */
 
 .sheet {
   position: relative;
-  background: var(--sheet);
+  padding: var(--sp-4);
   border: 1px solid var(--rule);
   border-radius: var(--radius-card);
+  background: var(--sheet);
   box-shadow: var(--shadow-sheet);
-  padding: var(--sp-4) var(--sp-4) var(--sp-4) calc(var(--margin-rule) + var(--sp-4));
 }
 
 .sheet::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: var(--margin-rule);
-  width: 1px;
-  background: var(--red-pen);
-  opacity: 0.3;
-  pointer-events: none;
+  display: none;
 }
 
-/* --- buttons -------------------------------------------------------------
+/* buttons
    Three variants, one geometry. Nothing else may invent a button style. */
 
 .btn {
@@ -116,26 +108,26 @@ a:hover {
   cursor: not-allowed;
 }
 
+/* Solid black, same as the header's Write button. One primary action colour
+   for the whole app, and it isn't a brand hue. */
 .btn--primary {
-  background: var(--ink-blue);
-  border-color: var(--ink-blue);
-  color: var(--sheet);
+  background: var(--action);
+  color: var(--action-ink);
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: var(--ink-blue-deep);
-  border-color: var(--ink-blue-deep);
+  background: #333;
   text-decoration: none;
 }
 
 .btn--secondary {
   border-color: var(--rule);
+  background: var(--sheet);
   color: var(--ink);
 }
 
 .btn--secondary:hover:not(:disabled) {
   background: var(--sheet-sunk);
-  border-color: var(--graphite);
   text-decoration: none;
 }
 
@@ -145,7 +137,7 @@ a:hover {
 }
 
 .btn--quiet:hover:not(:disabled) {
-  background: var(--sheet-sunk);
+  background: var(--row-hover);
   color: var(--ink);
   text-decoration: none;
 }
@@ -160,17 +152,17 @@ a:hover {
   text-decoration: none;
 }
 
-/* Filled destructive — only for the confirming button inside a dialog, where
-   it is the primary action of that moment. */
+/* Filled destructive. Only for the confirm button inside a dialog, where it
+   is the primary action at that moment. */
 .btn--danger-solid {
   background: var(--red-pen);
   border-color: var(--red-pen);
-  color: var(--sheet);
+  color: #fff;
 }
 
 .btn--danger-solid:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--red-pen) 85%, var(--ink));
-  border-color: color-mix(in srgb, var(--red-pen) 85%, var(--ink));
+  background: color-mix(in srgb, var(--red-pen) 85%, #000);
+  border-color: var(--red-pen);
 }
 
 .btn--block {
@@ -183,7 +175,7 @@ a:hover {
   font-size: var(--text-xs);
 }
 
-/* --- forms --------------------------------------------------------------- */
+/* forms */
 
 .field {
   display: flex;
@@ -196,6 +188,7 @@ a:hover {
   color: var(--graphite);
   font-size: var(--text-sm);
   font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .field input,
@@ -209,18 +202,27 @@ a:hover {
   color: var(--ink);
   font-family: var(--font-body);
   font-size: var(--text-base);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 input[type='checkbox'] {
-  accent-color: var(--ink-blue);
+  accent-color: var(--action);
 }
 
-.field input:hover {
-  border-color: var(--graphite);
+.field input:hover,
+.field select:hover,
+.field textarea:hover {
+  border-color: rgba(0, 0, 0, 0.25);
 }
 
-.field input:focus {
-  border-color: var(--ink-blue);
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--action);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
 }
 
 /* Chrome paints autofilled fields pale blue, which drops a colour the system
@@ -246,7 +248,7 @@ input[type='checkbox'] {
   font-weight: 600;
 }
 
-/* --- feedback ------------------------------------------------------------ */
+/* feedback */
 
 .alert {
   margin-bottom: var(--sp-4);
@@ -289,7 +291,7 @@ input[type='checkbox'] {
   }
 }
 
-/* --- utilities ----------------------------------------------------------- */
+/* utilities */
 
 .muted {
   color: var(--graphite);
@@ -318,8 +320,11 @@ input[type='checkbox'] {
   *,
   *::before,
   *::after {
+    animation-delay: 0s !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    transition-delay: 0s !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
