@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import clsx from 'clsx';
 import useAuth from '../hooks/useAuth';
+import Brand from '../components/Brand';
 import Spinner from '../components/Spinner';
 
 export default function Login() {
@@ -9,25 +11,26 @@ export default function Login() {
   const location = useLocation();
 
   const [form, setForm] = useState({ email: '', password: '' });
-  const [fieldErrors, setFieldErrors] = useState({});
+  const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Already signed in — don't show the form at all.
-  if (loading) return <Spinner label="Checking your session…" />;
+  // already signed in, so don't show the form at all
+  if (loading) return <Spinner label="Checking your session..." />;
   if (token) return <Navigate to="/" replace />;
 
-  const update = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
-    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const validate = () => {
-    const errors = {};
-    if (!form.email.trim()) errors.email = 'Enter your email address';
-    if (!form.password) errors.password = 'Enter your password';
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
+    const found = {};
+    if (!form.email.trim()) found.email = 'Enter your email address';
+    if (!form.password) found.password = 'Enter your password';
+    setErrors(found);
+    return Object.keys(found).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -38,7 +41,7 @@ export default function Login() {
     setSubmitting(true);
     try {
       await login({ email: form.email.trim(), password: form.password });
-      // Send the user back to whatever ProtectedRoute interrupted.
+      // back to whatever page ProtectedRoute interrupted
       navigate(location.state?.from?.pathname ?? '/', { replace: true });
     } catch (err) {
       setFormError(err.message);
@@ -50,10 +53,8 @@ export default function Login() {
   return (
     <div className="auth">
       <div className="auth__brand">
-        <span className="wordmark">
-          Margin<span>.</span>
-        </span>
-        <p className="auth__tagline">Somewhere to put it down.</p>
+        <Brand size="lg" />
+        <p className="auth__tagline">Write. Organise. Keep.</p>
       </div>
 
       <div className="sheet auth__card">
@@ -67,7 +68,7 @@ export default function Login() {
         )}
 
         <form onSubmit={handleSubmit} noValidate>
-          <div className={`field${fieldErrors.email ? ' field--invalid' : ''}`}>
+          <div className={clsx('field', errors.email && 'field--invalid')}>
             <label htmlFor="email">Email</label>
             <input
               id="email"
@@ -75,13 +76,13 @@ export default function Login() {
               type="email"
               autoComplete="email"
               value={form.email}
-              onChange={update('email')}
-              aria-invalid={Boolean(fieldErrors.email)}
+              onChange={handleChange}
+              aria-invalid={Boolean(errors.email)}
             />
-            {fieldErrors.email && <span className="field__error">{fieldErrors.email}</span>}
+            {errors.email && <span className="field__error">{errors.email}</span>}
           </div>
 
-          <div className={`field${fieldErrors.password ? ' field--invalid' : ''}`}>
+          <div className={clsx('field', errors.password && 'field--invalid')}>
             <label htmlFor="password">Password</label>
             <input
               id="password"
@@ -89,10 +90,10 @@ export default function Login() {
               type="password"
               autoComplete="current-password"
               value={form.password}
-              onChange={update('password')}
-              aria-invalid={Boolean(fieldErrors.password)}
+              onChange={handleChange}
+              aria-invalid={Boolean(errors.password)}
             />
-            {fieldErrors.password && <span className="field__error">{fieldErrors.password}</span>}
+            {errors.password && <span className="field__error">{errors.password}</span>}
           </div>
 
           <button type="submit" className="btn btn--primary btn--block" disabled={submitting}>

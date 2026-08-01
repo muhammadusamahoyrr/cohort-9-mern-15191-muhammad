@@ -1,4 +1,4 @@
-export default function Spinner({ label = 'Loading…', inline = false }) {
+export default function Spinner({ label = 'Loading...', inline = false }) {
   if (inline) {
     return <span className="spinner" role="status" aria-label={label} />;
   }

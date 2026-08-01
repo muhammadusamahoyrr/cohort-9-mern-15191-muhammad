@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import clsx from 'clsx';
 
 export default function ConfirmDialog({
   title,
@@ -13,18 +14,18 @@ export default function ConfirmDialog({
   const confirmRef = useRef(null);
 
   useEffect(() => {
-    // Whatever opened the dialog gets focus back when it closes, otherwise
-    // keyboard users are dropped at the top of the document.
+    // hand focus back to whatever opened us, or keyboard users end up at the
+    // top of the document
     const opener = document.activeElement;
     confirmRef.current?.focus();
 
-    const onKeyDown = (e) => {
+    const handleKey = (e) => {
       if (e.key === 'Escape') onCancel();
     };
-    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keydown', handleKey);
 
     return () => {
-      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('keydown', handleKey);
       if (opener instanceof HTMLElement) opener.focus();
     };
   }, [onCancel]);
@@ -32,8 +33,8 @@ export default function ConfirmDialog({
   return (
     <div
       className="dialog-backdrop"
-      // Clicking the backdrop dismisses, but a click that started inside the
-      // dialog and drifted out (text selection) must not.
+      // backdrop clicks dismiss, but not a drag that started inside the dialog
+      // and drifted out while selecting text
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onCancel();
       }}
@@ -48,11 +49,11 @@ export default function ConfirmDialog({
           <button
             type="button"
             ref={confirmRef}
-            className={`btn ${destructive ? 'btn--danger-solid' : 'btn--primary'}`}
+            className={clsx('btn', destructive ? 'btn--danger-solid' : 'btn--primary')}
             onClick={onConfirm}
             disabled={busy}
           >
-            {busy ? 'Working…' : confirmLabel}
+            {busy ? 'Working...' : confirmLabel}
           </button>
         </div>
       </div>

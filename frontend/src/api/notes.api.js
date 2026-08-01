@@ -3,7 +3,7 @@ import client from './client';
 export function listNotes({ search = '', page = 1, limit = 10, sort, order } = {}) {
   return client.get('/notes', {
     params: {
-      // Don't send empty params — they'd show up as `?search=` in the logs.
+      // skip the empty ones, otherwise they show up as ?search= in the logs
       ...(search ? { search } : {}),
       ...(sort ? { sort } : {}),
       ...(order ? { order } : {}),

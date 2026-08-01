@@ -1,26 +1,28 @@
-import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
-import Navbar from './components/Navbar';
+import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import AppHeader from './components/AppHeader';
 import ProtectedRoute from './components/ProtectedRoute';
-import Dashboard from './pages/Dashboard';
+import EditorEmpty from './pages/EditorEmpty';
 import Login from './pages/Login';
 import NoteEditor from './pages/NoteEditor';
 import NotFound from './pages/NotFound';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
+import Workspace from './pages/Workspace';
 
-// Shell for every signed-in screen: navbar on top, page below.
 function AppLayout() {
-  // Prose gets a narrower measure than the dashboard grid — long lines are
-  // harder to write into, not just harder to read.
-  const isEditor = useLocation().pathname.startsWith('/notes/');
-
   return (
     <div className="app">
-      <Navbar />
-      <main className={`page${isEditor ? ' page--narrow' : ''}`}>
-        <Outlet />
-      </main>
+      <AppHeader />
+      <Outlet />
     </div>
+  );
+}
+
+function PageLayout() {
+  return (
+    <main className="page">
+      <Outlet />
+    </main>
   );
 }
 
@@ -37,13 +39,23 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/notes/new" element={<NoteEditor />} />
-        <Route path="/notes/:id" element={<NoteEditor />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route element={<Workspace />}>
+          <Route path="/" element={<EditorEmpty />} />
+          <Route path="/shared" element={<EditorEmpty />} />
+          <Route path="/reminders" element={<EditorEmpty />} />
+          <Route path="/search" element={null} />
+          <Route path="/trash" element={null} />
+          <Route path="/boards/:boardId" element={null} />
+          <Route path="/notebooks/:notebookId" element={<EditorEmpty />} />
+          <Route path="/notes/new" element={<NoteEditor />} />
+          <Route path="/notes/:id" element={<NoteEditor />} />
+        </Route>
+
+        <Route element={<PageLayout />}>
+          <Route path="/profile" element={<Profile />} />
+        </Route>
       </Route>
 
-      {/* Old bookmarks from before the dashboard moved to "/". */}
       <Route path="/dashboard" element={<Navigate to="/" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

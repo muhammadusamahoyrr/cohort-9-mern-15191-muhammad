@@ -1,36 +1,21 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Avatar from './Avatar';
 import LogoutButton from './LogoutButton';
 import useAuth from '../hooks/useAuth';
+import useDismiss from '../hooks/useDismiss';
 
 export default function UserMenu() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const wrapRef = useRef(null);
+  const ref = useRef(null);
 
-  useEffect(() => {
-    if (!open) return;
-
-    const onPointerDown = (e) => {
-      if (!wrapRef.current?.contains(e.target)) setOpen(false);
-    };
-    const onKeyDown = (e) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-
-    document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [open]);
+  useDismiss(ref, open, () => setOpen(false));
 
   if (!user) return null;
 
   return (
-    <div className="usermenu" ref={wrapRef}>
+    <div className="usermenu" ref={ref}>
       <button
         type="button"
         className="usermenu__trigger"

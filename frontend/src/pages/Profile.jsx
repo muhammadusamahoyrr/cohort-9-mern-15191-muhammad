@@ -10,27 +10,26 @@ export default function Profile() {
   const { user } = useAuth();
   const [noteCount, setNoteCount] = useState(null);
 
-  // The count comes from the list endpoint's pagination block — asking for a
-  // single row keeps the payload tiny.
+  // the count lives in the list endpoint's pagination, so ask for one row
   useEffect(() => {
-    let stale = false;
+    let cancelled = false;
     notesApi
       .listNotes({ limit: 1 })
       .then((data) => {
-        if (!stale) setNoteCount(data.pagination.total);
+        if (!cancelled) setNoteCount(data.pagination.total);
       })
       .catch(() => {
-        // A missing count isn't worth an error banner on this screen.
-        if (!stale) setNoteCount(null);
+        // not worth an error banner on this screen
+        if (!cancelled) setNoteCount(null);
       });
 
     return () => {
-      stale = true;
+      cancelled = true;
     };
   }, []);
 
   if (!user) {
-    return <Spinner label="Loading your profile…" />;
+    return <Spinner label="Loading your profile..." />;
   }
 
   return (

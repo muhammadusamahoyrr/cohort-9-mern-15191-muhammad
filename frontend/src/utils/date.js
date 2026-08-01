@@ -1,32 +1,62 @@
-// The API sends ISO-8601 UTC strings; turning them into local time is the
-// browser's job (see docs/02-DATABASE.md, "Time zones").
+import {
+  differenceInCalendarDays,
+  differenceInDays,
+  differenceInHours,
+  differenceInMinutes,
+  isToday,
+  isValid,
+  isYesterday,
+} from 'date-fns';
 
-const MINUTE = 60_000;
-const HOUR = 60 * MINUTE;
-const DAY = 24 * HOUR;
+const dateOnly = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' });
+const dateAndTime = new Intl.DateTimeFormat(undefined, {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+});
+const weekday = new Intl.DateTimeFormat(undefined, { weekday: 'long' });
+const relative = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
 
 export function formatDateTime(iso) {
   const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date);
+  return isValid(date) ? dateAndTime.format(date) : '';
 }
 
-/** "just now" / "3 hours ago" for anything recent, a plain date beyond a week. */
 export function formatRelative(iso) {
   const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
+  if (!isValid(date)) return '';
 
-  const elapsed = Date.now() - date.getTime();
-  if (elapsed < MINUTE) return 'just now';
+  const now = new Date();
+  const minutes = differenceInMinutes(now, date);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return relative.format(-minutes, 'minute');
 
-  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
-  if (elapsed < HOUR) return rtf.format(-Math.floor(elapsed / MINUTE), 'minute');
-  if (elapsed < DAY) return rtf.format(-Math.floor(elapsed / HOUR), 'hour');
-  if (elapsed < 7 * DAY) return rtf.format(-Math.floor(elapsed / DAY), 'day');
+  const hours = differenceInHours(now, date);
+  if (hours < 24) return relative.format(-hours, 'hour');
 
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(date);
+  const days = differenceInDays(now, date);
+  // "37 days ago" tells nobody anything, so past a week we show the date
+  return days < 7 ? relative.format(-days, 'day') : dateOnly.format(date);
+}
+
+export function formatDayHeading(iso) {
+  const date = new Date(iso);
+  if (!isValid(date)) return '';
+
+  if (isToday(date)) return 'Today';
+  if (isYesterday(date)) return 'Yesterday';
+  if (differenceInCalendarDays(new Date(), date) < 7) return weekday.format(date);
+  return dateOnly.format(date);
+}
+
+export function groupByDay(notes) {
+  const groups = [];
+
+  notes.forEach((note) => {
+    const heading = formatDayHeading(note.updatedAt);
+    const last = groups[groups.length - 1];
+    if (last && last.heading === heading) last.notes.push(note);
+    else groups.push({ heading, notes: [note] });
+  });
+
+  return groups;
 }

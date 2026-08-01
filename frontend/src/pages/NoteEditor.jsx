@@ -1,13 +1,47 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useOutletContext, useParams, useSearchParams } from 'react-router-dom';
+import clsx from 'clsx';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import ColorPicker from '../components/ColorPicker';
 import ConfirmDialog from '../components/ConfirmDialog';
+import ReminderPicker from '../components/ReminderPicker';
+import NoteSidePanel from '../components/NoteSidePanel';
+import TodoEditor from '../components/TodoEditor';
+import DrawCanvas from '../components/DrawCanvas';
+import FileDrop from '../components/FileDrop';
+import MediaPanel from '../components/MediaPanel';
+import { emptyChecklist, parseChecklist, serializeChecklist } from '../utils/todoContent';
+import Menu from '../components/Menu';
 import Spinner from '../components/Spinner';
 import * as notesApi from '../api/notes.api';
+import useSettings from '../hooks/useSettings';
+import { DEFAULT_NOTE_COLOR, TODO_NOTE_COLOR } from '../components/notePalette';
+import {
+  ActivityIcon,
+  CloseIcon,
+  CopyIcon,
+  ExpandIcon,
+  HistoryIcon,
+  InfoIcon,
+  LinkIcon,
+  LockIcon,
+  MergeIcon,
+  MoreIcon,
+  MoveIcon,
+  PrintIcon,
+  ShareIcon,
+  StarIcon,
+  TagIcon,
+  TrashIcon,
+  CollaboratorIcon,
+  MailIcon,
+  GlobeIcon,
+  CodeIcon,
+  ExportIcon,
+} from '../components/icons';
 
-// Only the formats the server's sanitizer allowlist keeps (docs/01-ARCHITECTURE.md).
-// Offering anything else would let people apply styling that silently vanishes on save.
+// Anything outside this list gets stripped by the server's sanitizer on save.
 const QUILL_FORMATS = [
   'header',
   'bold',
@@ -15,6 +49,10 @@ const QUILL_FORMATS = [
   'underline',
   'strike',
   'list',
+  'indent',
+  'align',
+  'color',
+  'background',
   'blockquote',
   'code-block',
   'link',
@@ -22,28 +60,20 @@ const QUILL_FORMATS = [
 
 const TITLE_MAX = 200;
 
-/**
- * Quill writes `&nbsp;` between words, so stripping tags with a regex leaves
- * entities glued to the text and a paragraph counts as one long word. Parsing
- * into a <template> gives the real text: its content is an inert fragment, so
- * nothing in the note's HTML can load, run or fire while we read it. The
- * non-breaking spaces then need no special handling — JS `\s` and `trim()`
- * both already treat U+00A0 as whitespace.
- */
-function toText(html) {
-  // textContent runs blocks together — "<li>a</li><li>b</li>" reads as "ab" —
-  // so give every block close a trailing space before parsing.
+function plainText(html) {
+  // textContent runs blocks together, so "<li>a</li><li>b</li>" comes out "ab".
+  // Adding a space after each closing tag first keeps the words apart.
   const spaced = (html || '').replace(/<\/(p|li|h[1-6]|blockquote|pre|div)>/gi, '$& ');
   const template = document.createElement('template');
   template.innerHTML = spaced;
   return template.content.textContent || '';
 }
 
-// Quill's "empty" document still has markup in it.
-const isBlankHtml = (html) => toText(html).trim() === '';
+// an "empty" quill document still has markup in it
+const isEmpty = (html) => plainText(html).trim() === '';
 
 function countWords(html) {
-  const text = toText(html).trim();
+  const text = plainText(html).trim();
   return text ? text.split(/\s+/).length : 0;
 }
 
@@ -51,10 +81,32 @@ export default function NoteEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isNew = !id;
+  // the tests render this outside the workspace, where there's no outlet context
+  const { expanded = false, setExpanded, refresh } = useOutletContext() ?? {};
+  const { settings } = useSettings();
+  const [searchParams] = useSearchParams();
+
+  const type = searchParams.get('type');
+  // A To Do note swaps the rich text body for a checklist. New notes take the
+  // type from the query, existing ones carry it on the record.
+  const [isTodo, setIsTodo] = useState(() => type === 'todo');
+  // Draw and capture are session only, there's nowhere to store an image yet.
+  const isDraw = type === 'draw';
+  const isCapture = type === 'capture';
+  const isAttach = type === 'attach';
+  const media = type === 'audio' || type === 'video' ? type : null;
+  const [todoItems, setTodoItems] = useState(emptyChecklist);
 
   const [title, setTitle] = useState('');
   const [contentHtml, setContentHtml] = useState('');
   const [isPinned, setIsPinned] = useState(false);
+  const [color, setColor] = useState(() =>
+    type === 'todo' ? TODO_NOTE_COLOR : DEFAULT_NOTE_COLOR
+  );
+  const [confirmTrash, setConfirmTrash] = useState(false);
+  const [panel, setPanel] = useState(null); // 'info' | 'collaborators'
+  const [dates, setDates] = useState({ createdAt: null, updatedAt: null });
+  const [trashing, setTrashing] = useState(false);
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -62,38 +114,43 @@ export default function NoteEditor() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
 
-  // Quill rewrites the HTML it is handed into its own canonical form, so
-  // comparing the current value against the loaded one reports "unsaved
-  // changes" the moment a note opens. Tracking edits the user actually made —
-  // Quill tags those with source 'user' — is the honest signal.
+  // Quill reformats whatever HTML you hand it, so diffing the current value
+  // against the loaded one flags "unsaved changes" the moment a note opens.
+  // Tracking edits quill tags as source 'user' is the honest signal.
   const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
     if (isNew) return;
 
-    let stale = false;
+    let cancelled = false;
     setLoading(true);
 
     notesApi
       .getNote(id)
       .then(({ note }) => {
-        if (stale) return;
+        if (cancelled) return;
         setTitle(note.title);
         setContentHtml(note.contentHtml ?? '');
         setIsPinned(Boolean(note.isPinned));
+        setColor(note.color || DEFAULT_NOTE_COLOR);
+        setDates({ createdAt: note.createdAt, updatedAt: note.updatedAt });
+        if (note.type === 'todo') {
+          setIsTodo(true);
+          setTodoItems(parseChecklist(note.contentHtml));
+        }
       })
       .catch((err) => {
-        if (stale) return;
-        // 404 also covers "belongs to someone else" — see docs/03-API.md.
+        if (cancelled) return;
+        // a 404 also covers "belongs to someone else"
         setError(err.status === 404 ? 'That note no longer exists.' : err.message);
         setLoadFailed(true);
       })
       .finally(() => {
-        if (!stale) setLoading(false);
+        if (!cancelled) setLoading(false);
       });
 
     return () => {
-      stale = true;
+      cancelled = true;
     };
   }, [id, isNew]);
 
@@ -112,10 +169,14 @@ export default function NoteEditor() {
     setError('');
     setSaving(true);
 
+    const body = isTodo ? serializeChecklist(todoItems) : contentHtml;
+
     const payload = {
       title: trimmed,
-      contentHtml: isBlankHtml(contentHtml) ? '' : contentHtml,
+      contentHtml: isEmpty(body) ? '' : body,
       isPinned,
+      color,
+      type: isTodo ? 'todo' : 'note',
     };
 
     try {
@@ -125,13 +186,15 @@ export default function NoteEditor() {
         await notesApi.updateNote(id, payload);
       }
       setDirty(false);
+      // the list pane never unmounts, so it has to be told the note changed
+      refresh?.();
       navigate('/');
     } catch (err) {
       setError(err.message);
     } finally {
       setSaving(false);
     }
-  }, [title, contentHtml, isPinned, isNew, id, navigate]);
+  }, [title, contentHtml, isTodo, todoItems, isPinned, color, isNew, id, navigate, refresh]);
 
   const cancel = () => {
     if (dirty) {
@@ -141,20 +204,19 @@ export default function NoteEditor() {
     navigate('/');
   };
 
-  // Ctrl/Cmd+S is what people reach for in an editor; without this the browser
-  // opens its "save page" dialog instead.
+  // without this, ctrl/cmd+S opens the browser's "save page" dialog
   useEffect(() => {
-    const onKeyDown = (e) => {
+    const handleKey = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
         if (!saving && !loading) save();
       }
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
   }, [save, saving, loading]);
 
-  // Closing the tab or hitting back is the one exit the Cancel guard can't see.
+  // closing the tab is the one exit the Cancel guard can't catch
   useEffect(() => {
     if (!dirty) return;
     const warn = (e) => e.preventDefault();
@@ -162,30 +224,49 @@ export default function NoteEditor() {
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
 
-  // Rebuilding this object on every render remounts the toolbar and steals focus.
-  const quillModules = useMemo(
+  // rebuilding this remounts the toolbar and steals focus
+  const modules = useMemo(
     () => ({
-      toolbar: [
-        [{ header: [1, 2, 3, false] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        ['blockquote', 'code-block', 'link'],
-        ['clean'],
-      ],
+      history: {
+        delay: 500,
+        maxStack: 100,
+        userOnly: true,
+      },
+      toolbar: {
+        container: [
+          ['undo', 'redo'],
+          [{ header: [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ color: [] }, { background: [] }],
+          [{ align: [] }],
+          [{ indent: '-1' }, { indent: '+1' }],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          ['blockquote', 'code-block', 'link'],
+          ['clean'],
+        ],
+        handlers: {
+          undo() {
+            this.quill.history.undo();
+          },
+          redo() {
+            this.quill.history.redo();
+          },
+        },
+      },
     }),
     []
   );
 
-  const words = countWords(contentHtml);
+  const words = isTodo ? countWords(serializeChecklist(todoItems)) : countWords(contentHtml);
 
   if (loading) {
-    return <Spinner label="Opening note…" />;
+    return <Spinner label="Opening note..." />;
   }
 
   if (loadFailed) {
     return (
       <div className="sheet centered-note">
-        <h1>Can’t open that note</h1>
+        <h1>{"Can't open that note"}</h1>
         <p className="muted">{error}</p>
         <button type="button" className="btn btn--primary" onClick={() => navigate('/')}>
           Back to your notes
@@ -195,18 +276,27 @@ export default function NoteEditor() {
   }
 
   return (
-    <>
-      <div className="page__header">
-        <h1>{isNew ? 'New note' : 'Edit note'}</h1>
-      </div>
+    <div
+      className={clsx('editor', {
+        'editor--draw': isDraw,
+        'editor--capture': isCapture,
+        'editor--attach': isAttach,
+        'editor--media': media,
+      })}
+      style={{ '--note-color': color }}
+    >
+      {/* the title is centred between the two corner buttons */}
+      <div className="editor__top">
+        <button
+          type="button"
+          className="iconbtn"
+          aria-label={expanded ? 'Collapse note' : 'Expand note'}
+          aria-pressed={expanded}
+          onClick={() => setExpanded?.((v) => !v)}
+        >
+          <ExpandIcon />
+        </button>
 
-      {error && (
-        <div className="alert" role="alert">
-          {error}
-        </div>
-      )}
-
-      <div className="sheet editor">
         <label className="visually-hidden" htmlFor="note-title">
           Title
         </label>
@@ -214,7 +304,7 @@ export default function NoteEditor() {
           id="note-title"
           className="editor__title"
           type="text"
-          placeholder={isNew ? 'Untitled note' : 'Title'}
+          placeholder="Title"
           maxLength={TITLE_MAX}
           value={title}
           autoFocus
@@ -226,56 +316,203 @@ export default function NoteEditor() {
           aria-invalid={Boolean(titleError)}
         />
 
-        <ReactQuill
-          theme="snow"
-          value={contentHtml}
-          onChange={(value, _delta, source) => {
-            setContentHtml(value);
-            if (source === 'user') setDirty(true);
-          }}
-          modules={quillModules}
-          formats={QUILL_FORMATS}
-          placeholder="Start writing…"
-        />
+        <button
+          type="button"
+          className="iconbtn"
+          aria-label="Close note"
+          onClick={cancel}
+          disabled={saving}
+        >
+          <CloseIcon width={24} height={24} />
+        </button>
       </div>
 
+      {error && (
+        <div className="alert" role="alert">
+          {error}
+        </div>
+      )}
       {titleError && <p className="field__error">{titleError}</p>}
 
-      {/* Save and Cancel stay put at the bottom of the viewport, so they are
-          reachable from anywhere in a long note without scrolling. */}
-      <div className="editor__bar">
-        {/* Both facts at once: swapping one for the other hides the word count
-            for exactly as long as someone is actually writing. */}
-        <span className="editor__status">
-          {dirty && <span className="editor__dot" aria-hidden="true" />}
-          {words === 1 ? '1 word' : `${words} words`}
-          {dirty && ' · unsaved'}
-        </span>
-
-        <label className="editor__status">
-          <input
-            type="checkbox"
-            checked={isPinned}
-            onChange={(e) => {
-              setIsPinned(e.target.checked);
+      {/* spellcheck is inherited, so setting it here reaches the node quill
+          creates without racing its setup */}
+      <div className="editor__body" spellCheck={settings.spellCheck}>
+        {isDraw ? (
+          <DrawCanvas />
+        ) : isCapture ? (
+          <FileDrop kind="capture" />
+        ) : isAttach ? (
+          <FileDrop kind="attach" />
+        ) : media ? (
+          <MediaPanel kind={media} />
+        ) : isTodo ? (
+          <TodoEditor
+            items={todoItems}
+            onChange={(next) => {
+              setTodoItems(next);
               setDirty(true);
             }}
           />
-          Pin
-        </label>
-
-        <button type="button" className="btn btn--secondary" onClick={cancel} disabled={saving}>
-          Cancel
-        </button>
-        <button type="button" className="btn btn--primary" onClick={save} disabled={saving}>
-          {saving ? <Spinner inline label="Saving" /> : 'Save note'}
-        </button>
+        ) : (
+          <ReactQuill
+            theme="snow"
+            value={contentHtml}
+            onChange={(value, _delta, source) => {
+              setContentHtml(value);
+              if (source === 'user') setDirty(true);
+            }}
+            modules={modules}
+            formats={QUILL_FORMATS}
+            placeholder="Start writing..."
+          />
+        )}
       </div>
+
+      <div className="editor__bar">
+        {!isDraw && (
+          <span className="editor__status">
+            {dirty && <span className="editor__dot" aria-hidden="true" />}
+            {words === 1 ? '1 word' : `${words} words`}
+            {dirty && ' · unsaved'}
+          </span>
+        )}
+
+        {!isDraw && (
+          <div className="editor__tools">
+            <ReminderPicker />
+
+            <ColorPicker
+              value={color}
+              onChange={(next) => {
+                setColor(next);
+                setDirty(true);
+              }}
+            />
+
+            <button
+              type="button"
+              className={clsx('iconbtn', panel === 'info' && 'iconbtn--on')}
+              aria-label="Tags and info"
+              onClick={() => setPanel((p) => (p === 'info' ? null : 'info'))}
+            >
+              <TagIcon />
+            </button>
+
+            <button
+              type="button"
+              className={clsx('iconbtn', panel === 'collaborators' && 'iconbtn--on')}
+              aria-label="Collaborators"
+              onClick={() => setPanel((p) => (p === 'collaborators' ? null : 'collaborators'))}
+            >
+              <CollaboratorIcon />
+            </button>
+
+            <Menu
+              label="Share note"
+              icon={ShareIcon}
+              align="right"
+              dark
+              items={[
+                { key: 'mail', label: 'Mail', icon: MailIcon, disabled: true },
+                { key: 'public', label: 'Public Shareable Link', icon: GlobeIcon, disabled: true },
+                { key: 'embed', label: 'Embed link', icon: CodeIcon, disabled: true },
+                { separator: true },
+                {
+                  key: 'copy',
+                  label: 'Copy note link',
+                  icon: LinkIcon,
+                  onSelect: () => navigator.clipboard?.writeText(window.location.href),
+                },
+                { key: 'export', label: 'Export as', icon: ExportIcon, disabled: true },
+              ]}
+            />
+
+            <Menu
+              label="More note actions"
+              icon={MoreIcon}
+              align="right"
+              dark
+              items={[
+                { key: 'info', label: 'Info', icon: InfoIcon, disabled: true },
+                { key: 'versions', label: 'Versions', icon: HistoryIcon, disabled: true },
+                { key: 'activities', label: 'Note Activities', icon: ActivityIcon, disabled: true },
+                {
+                  key: 'favorite',
+                  label: isPinned ? 'Unfavorite' : 'Favorite',
+                  icon: StarIcon,
+                  onSelect: () => {
+                    setIsPinned((v) => !v);
+                    setDirty(true);
+                  },
+                },
+                { key: 'merge', label: 'Note Merge', icon: MergeIcon, disabled: true },
+                { key: 'lock', label: 'Lock', icon: LockIcon, disabled: true },
+                { key: 'copy', label: 'Copy to', icon: CopyIcon, disabled: true },
+                { key: 'move', label: 'Move to', icon: MoveIcon, disabled: true },
+                { key: 'print', label: 'Print', icon: PrintIcon, onSelect: () => window.print() },
+                { key: 'links', label: 'Associated Links', icon: LinkIcon, disabled: true },
+                { separator: true },
+                {
+                  key: 'trash',
+                  label: 'Trash',
+                  icon: TrashIcon,
+                  danger: true,
+                  disabled: isNew,
+                  onSelect: () => setConfirmTrash(true),
+                },
+              ]}
+            />
+          </div>
+        )}
+
+        {!isDraw && (
+          <button
+            type="button"
+            className="btn btn--primary btn--small"
+            onClick={save}
+            disabled={saving}
+          >
+            {saving ? <Spinner inline label="Saving" /> : 'Save note'}
+          </button>
+        )}
+      </div>
+
+      {panel && (
+        <NoteSidePanel
+          face={panel}
+          note={{ words, characters: plainText(contentHtml).length, ...dates }}
+          onClose={() => setPanel(null)}
+        />
+      )}
+
+      {confirmTrash && (
+        <ConfirmDialog
+          title="Move to Trash?"
+          message={`"${title || 'Untitled note'}" will be gone for good.`}
+          confirmLabel="Trash"
+          destructive
+          busy={trashing}
+          onConfirm={async () => {
+            setTrashing(true);
+            try {
+              await notesApi.deleteNote(id);
+              refresh?.();
+              navigate('/');
+            } catch (err) {
+              setError(err.message);
+              setConfirmTrash(false);
+            } finally {
+              setTrashing(false);
+            }
+          }}
+          onCancel={() => setConfirmTrash(false)}
+        />
+      )}
 
       {confirmDiscard && (
         <ConfirmDialog
           title="Discard changes?"
-          message="This note has edits that haven’t been saved yet."
+          message="This note has edits that haven't been saved yet."
           confirmLabel="Discard"
           cancelLabel="Keep editing"
           destructive
@@ -283,6 +520,6 @@ export default function NoteEditor() {
           onCancel={() => setConfirmDiscard(false)}
         />
       )}
-    </>
+    </div>
   );
 }

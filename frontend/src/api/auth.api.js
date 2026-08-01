@@ -8,8 +8,8 @@ export function login({ email, password }) {
   return client.post('/auth/login', { email, password });
 }
 
-// Fire-and-forget: the token is discarded client-side regardless of the result,
-// the call exists so the backend can log the event.
+// fire and forget. we drop the token either way, this just lets the backend
+// log the event
 export function logout() {
   return client.post('/auth/logout');
 }

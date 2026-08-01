@@ -1,86 +1,64 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useDebounce } from 'use-debounce';
 import * as notesApi from '../api/notes.api';
 
-const SEARCH_DEBOUNCE_MS = 300;
+const emptyPage = { page: 1, limit: 0, total: 0, totalPages: 0 };
 
-const EMPTY_PAGINATION = { page: 1, limit: 0, total: 0, totalPages: 0 };
-
-/**
- * Owns everything the dashboard list needs: query state, fetching, and the
- * bookkeeping around deleting a row. Kept out of Dashboard.jsx so the page
- * stays about markup.
- */
 export default function useNotes({ limit = 9 } = {}) {
   const [notes, setNotes] = useState([]);
-  const [pagination, setPagination] = useState(EMPTY_PAGINATION);
+  const [pagination, setPagination] = useState(emptyPage);
   const [loading, setLoading] = useState(true);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState(null);
 
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [query] = useDebounce(search.trim(), 300);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState('updated_at');
   const [order, setOrder] = useState('desc');
-  // Bumped to force a refetch without changing any query parameter.
   const [reloadKey, setReloadKey] = useState(0);
 
-  // Typing shouldn't fire a request per keystroke.
-  useEffect(() => {
-    const id = setTimeout(() => setDebouncedSearch(search.trim()), SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(id);
-  }, [search]);
-
-  // A new search term has to start from page 1, otherwise a search run from
-  // page 3 can land on an empty page of a much shorter result set.
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, sort, order]);
+  }, [query, sort, order]);
 
   useEffect(() => {
-    let stale = false;
+    let cancelled = false;
     setLoading(true);
 
     notesApi
-      .listNotes({ search: debouncedSearch, page, limit, sort, order })
+      .listNotes({ search: query, page, limit, sort, order })
       .then((data) => {
-        if (stale) return;
+        if (cancelled) return;
         setNotes(data.notes);
         setPagination(data.pagination);
         setError(null);
       })
       .catch((err) => {
-        if (stale) return;
+        if (cancelled) return;
         setError(err.message);
         setNotes([]);
-        setPagination(EMPTY_PAGINATION);
+        setPagination(emptyPage);
       })
       .finally(() => {
-        if (stale) return;
+        if (cancelled) return;
         setLoading(false);
         setHasLoaded(true);
       });
 
-    // Responses can arrive out of order while the user types; only the last
-    // request started is allowed to write to state.
     return () => {
-      stale = true;
+      cancelled = true;
     };
-  }, [debouncedSearch, page, limit, sort, order, reloadKey]);
+  }, [query, page, limit, sort, order, reloadKey]);
 
   const refresh = useCallback(() => setReloadKey((k) => k + 1), []);
 
   const remove = useCallback(
     async (id) => {
       await notesApi.deleteNote(id);
-      // Deleting the only note on the last page would otherwise leave the user
-      // staring at an empty grid with no obvious way back. Stepping back a page
-      // already refetches, so only the same-page case needs refresh().
-      if (notes.length === 1 && page > 1) {
-        setPage(page - 1);
-      } else {
-        refresh();
-      }
+      // deleting the last note on page 2+ would leave an empty grid
+      if (notes.length === 1 && page > 1) setPage(page - 1);
+      else refresh();
     },
     [notes.length, page, refresh]
   );
@@ -95,8 +73,6 @@ export default function useNotes({ limit = 9 } = {}) {
     notes,
     pagination,
     loading,
-    // Distinguishing the two keeps the grid on screen during a refetch and
-    // reserves the full-page spinner for the very first paint.
     firstLoad: loading && !hasLoaded,
     error,
     search,

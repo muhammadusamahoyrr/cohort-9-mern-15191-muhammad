@@ -9,7 +9,7 @@ export default function ProtectedRoute({ children }) {
   // Wait for the stored token to be validated, otherwise a refresh on
   // /notes/4 flashes the login screen before bouncing back.
   if (loading) {
-    return <Spinner label="Checking your session…" />;
+    return <Spinner label="Checking your session..." />;
   }
 
   if (!token) {

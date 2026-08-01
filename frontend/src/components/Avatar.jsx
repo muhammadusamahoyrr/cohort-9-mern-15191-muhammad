@@ -1,4 +1,5 @@
-/** Initials in a disc — the app never asks for a photo, so this is the identity mark. */
+import clsx from 'clsx';
+
 export default function Avatar({ name = '', className = '' }) {
   const initials = name
     .trim()
@@ -8,7 +9,7 @@ export default function Avatar({ name = '', className = '' }) {
     .join('');
 
   return (
-    <span className={`avatar ${className}`.trim()} aria-hidden="true">
+    <span className={clsx('avatar', className)} aria-hidden="true">
       {initials || '·'}
     </span>
   );

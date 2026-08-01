@@ -7,8 +7,6 @@ export const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setTokenState] = useState(() => getToken());
-  // Starts true so ProtectedRoute doesn't bounce a returning user to /login
-  // during the split second before /auth/me answers.
   const [loading, setLoading] = useState(Boolean(getToken()));
 
   useEffect(() => {
@@ -24,8 +22,6 @@ export function AuthProvider({ children }) {
         if (!cancelled) setUser(fetched);
       })
       .catch(() => {
-        // Expired or tampered token. The response interceptor has already
-        // cleared storage; mirror that in state so the UI agrees.
         if (!cancelled) {
           setTokenState(null);
           setUser(null);
@@ -61,8 +57,7 @@ export function AuthProvider({ children }) {
     try {
       await authApi.logout();
     } catch {
-      // Server unreachable or token already expired — the local session still
-      // has to go, otherwise "log out" silently does nothing.
+      // Best-effort server logout notify
     }
     setToken(null);
     setTokenState(null);
@@ -76,3 +71,4 @@ export function AuthProvider({ children }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+

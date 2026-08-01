@@ -4,9 +4,10 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './context/AuthContext';
+import { SettingsProvider } from './context/SettingsContext';
+import { CollectionsProvider } from './context/CollectionsContext';
 
-// Self-hosted so the app renders the same offline and nothing is requested
-// from a font CDN. Only the axes actually used are pulled in.
+// self-hosted, so no font CDN request and it looks the same offline
 import '@fontsource-variable/newsreader/wght.css';
 import '@fontsource-variable/newsreader/wght-italic.css';
 import '@fontsource-variable/public-sans/wght.css';
@@ -19,12 +20,16 @@ import './styles/notes.css';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      {/* Opt in to the v6.4+ behaviour now — it silences the upgrade warnings
-          and there is nothing here that depends on the old semantics. */}
+      {/* v7 flags on now. Nothing here relies on the old behaviour and it
+          shuts up the upgrade warnings. */}
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        <SettingsProvider>
+          <CollectionsProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+          </CollectionsProvider>
+        </SettingsProvider>
       </BrowserRouter>
     </ErrorBoundary>
   </StrictMode>

@@ -1,21 +1,23 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
+import clsx from 'clsx';
 import useAuth from '../hooks/useAuth';
+import Brand from '../components/Brand';
 import Spinner from '../components/Spinner';
 
-// Mirrors the backend rule in docs/03-API.md: 8+ chars, at least a letter and a digit.
+// same rule the backend enforces: 8+ chars with at least a letter and a digit
 const PASSWORD_MIN = 8;
-const hasLetter = (value) => /[a-zA-Z]/.test(value);
-const hasDigit = (value) => /\d/.test(value);
 
-/** Turns a 422 `details` array into { field: message } when the server sends one. */
-function toFieldErrors(details) {
+// turns a 422 details array into { field: message }
+function serverFieldErrors(details) {
   if (!Array.isArray(details)) return {};
-  return details.reduce((acc, item) => {
+
+  const out = {};
+  details.forEach((item) => {
     const field = item.field ?? item.path;
-    if (field && !acc[field]) acc[field] = item.message;
-    return acc;
-  }, {});
+    if (field && !out[field]) out[field] = item.message;
+  });
+  return out;
 }
 
 export default function Register() {
@@ -23,41 +25,45 @@ export default function Register() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
-  const [fieldErrors, setFieldErrors] = useState({});
+  const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  if (loading) return <Spinner label="Checking your session…" />;
+  if (loading) return <Spinner label="Checking your session..." />;
   if (token) return <Navigate to="/" replace />;
 
-  const update = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
-    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const validate = () => {
-    const errors = {};
+    const found = {};
 
     if (!form.name.trim()) {
-      errors.name = 'Tell us what to call you';
-    }
-    if (!form.email.trim()) {
-      errors.email = 'Enter your email address';
-    } else if (!form.email.includes('@')) {
-      // Deliberately loose — the server owns the real rule, this only catches typos.
-      errors.email = 'That doesn’t look like an email address';
-    }
-    if (form.password.length < PASSWORD_MIN) {
-      errors.password = `Use at least ${PASSWORD_MIN} characters`;
-    } else if (!hasLetter(form.password) || !hasDigit(form.password)) {
-      errors.password = 'Include at least one letter and one number';
-    }
-    if (form.confirm !== form.password) {
-      errors.confirm = 'Passwords don’t match';
+      found.name = 'Tell us what to call you';
     }
 
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
+    if (!form.email.trim()) {
+      found.email = 'Enter your email address';
+    } else if (!form.email.includes('@')) {
+      // loose on purpose, the server owns the real rule. this just catches typos
+      found.email = "That doesn't look like an email address";
+    }
+
+    if (form.password.length < PASSWORD_MIN) {
+      found.password = `Use at least ${PASSWORD_MIN} characters`;
+    } else if (!/[a-zA-Z]/.test(form.password) || !/\d/.test(form.password)) {
+      found.password = 'Include at least one letter and one number';
+    }
+
+    if (form.confirm !== form.password) {
+      found.confirm = "Passwords don't match";
+    }
+
+    setErrors(found);
+    return Object.keys(found).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -75,7 +81,7 @@ export default function Register() {
       navigate('/', { replace: true });
     } catch (err) {
       setFormError(err.message);
-      setFieldErrors(toFieldErrors(err.details));
+      setErrors(serverFieldErrors(err.details));
     } finally {
       setSubmitting(false);
     }
@@ -84,10 +90,8 @@ export default function Register() {
   return (
     <div className="auth">
       <div className="auth__brand">
-        <span className="wordmark">
-          Margin<span>.</span>
-        </span>
-        <p className="auth__tagline">Somewhere to put it down.</p>
+        <Brand size="lg" />
+        <p className="auth__tagline">Write. Organise. Keep.</p>
       </div>
 
       <div className="sheet auth__card">
@@ -101,7 +105,7 @@ export default function Register() {
         )}
 
         <form onSubmit={handleSubmit} noValidate>
-          <div className={`field${fieldErrors.name ? ' field--invalid' : ''}`}>
+          <div className={clsx('field', errors.name && 'field--invalid')}>
             <label htmlFor="name">Name</label>
             <input
               id="name"
@@ -109,13 +113,13 @@ export default function Register() {
               type="text"
               autoComplete="name"
               value={form.name}
-              onChange={update('name')}
-              aria-invalid={Boolean(fieldErrors.name)}
+              onChange={handleChange}
+              aria-invalid={Boolean(errors.name)}
             />
-            {fieldErrors.name && <span className="field__error">{fieldErrors.name}</span>}
+            {errors.name && <span className="field__error">{errors.name}</span>}
           </div>
 
-          <div className={`field${fieldErrors.email ? ' field--invalid' : ''}`}>
+          <div className={clsx('field', errors.email && 'field--invalid')}>
             <label htmlFor="email">Email</label>
             <input
               id="email"
@@ -123,13 +127,13 @@ export default function Register() {
               type="email"
               autoComplete="email"
               value={form.email}
-              onChange={update('email')}
-              aria-invalid={Boolean(fieldErrors.email)}
+              onChange={handleChange}
+              aria-invalid={Boolean(errors.email)}
             />
-            {fieldErrors.email && <span className="field__error">{fieldErrors.email}</span>}
+            {errors.email && <span className="field__error">{errors.email}</span>}
           </div>
 
-          <div className={`field${fieldErrors.password ? ' field--invalid' : ''}`}>
+          <div className={clsx('field', errors.password && 'field--invalid')}>
             <label htmlFor="password">Password</label>
             <input
               id="password"
@@ -137,12 +141,12 @@ export default function Register() {
               type="password"
               autoComplete="new-password"
               value={form.password}
-              onChange={update('password')}
+              onChange={handleChange}
               aria-describedby="password-hint"
-              aria-invalid={Boolean(fieldErrors.password)}
+              aria-invalid={Boolean(errors.password)}
             />
-            {fieldErrors.password ? (
-              <span className="field__error">{fieldErrors.password}</span>
+            {errors.password ? (
+              <span className="field__error">{errors.password}</span>
             ) : (
               <span id="password-hint" className="field__note">
                 At least {PASSWORD_MIN} characters, with a letter and a number.
@@ -150,7 +154,7 @@ export default function Register() {
             )}
           </div>
 
-          <div className={`field${fieldErrors.confirm ? ' field--invalid' : ''}`}>
+          <div className={clsx('field', errors.confirm && 'field--invalid')}>
             <label htmlFor="confirm">Confirm password</label>
             <input
               id="confirm"
@@ -158,10 +162,10 @@ export default function Register() {
               type="password"
               autoComplete="new-password"
               value={form.confirm}
-              onChange={update('confirm')}
-              aria-invalid={Boolean(fieldErrors.confirm)}
+              onChange={handleChange}
+              aria-invalid={Boolean(errors.confirm)}
             />
-            {fieldErrors.confirm && <span className="field__error">{fieldErrors.confirm}</span>}
+            {errors.confirm && <span className="field__error">{errors.confirm}</span>}
           </div>
 
           <button type="submit" className="btn btn--primary btn--block" disabled={submitting}>
