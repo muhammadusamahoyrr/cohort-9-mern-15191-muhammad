@@ -122,6 +122,17 @@ describe('response interceptor', () => {
     await expect(onError(error)).rejects.toThrow('Invalid credentials');
     expect(window.location.assign).not.toHaveBeenCalled();
   });
+
+  it('does not trigger hard redirect on 401 from /auth/me probe', async () => {
+    const error = axiosError(
+      401,
+      { success: false, error: { message: 'Unauthorized' } },
+      { url: '/auth/me' }
+    );
+
+    await expect(onError(error)).rejects.toThrow('Unauthorized');
+    expect(window.location.assign).not.toHaveBeenCalled();
+  });
 });
 
 it('is created against the configured API URL', () => {

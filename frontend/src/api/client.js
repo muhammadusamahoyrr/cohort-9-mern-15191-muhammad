@@ -58,7 +58,7 @@ function normalizeError(error) {
   return err;
 }
 
-const AUTH_ROUTES = ['/auth/login', '/auth/register'];
+const AUTH_ROUTES = ['/auth/login', '/auth/register', '/auth/me'];
 
 client.interceptors.response.use(
   (response) => response.data?.data ?? response.data,
