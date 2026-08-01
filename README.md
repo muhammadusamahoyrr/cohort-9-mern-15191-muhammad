@@ -1,6 +1,6 @@
 # Notes App
 
-Cohort 9 MERN (Node.js + React) assignment, Muhammad Usama.
+Cohort 9 MERN-style (Node.js + React) assignment, Muhammad Usama. MySQL replaces MongoDB.
 
 Full-stack notes application: users sign up, log in, and manage their own rich-text notes.
 
