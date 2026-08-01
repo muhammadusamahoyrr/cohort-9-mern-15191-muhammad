@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export default function Spinner({ label = 'Loading...', inline = false }) {
   if (inline) {
     return <span className="spinner" role="status" aria-label={label} />;
@@ -10,3 +12,9 @@ export default function Spinner({ label = 'Loading...', inline = false }) {
     </div>
   );
 }
+
+Spinner.propTypes = {
+  label: PropTypes.string,
+  inline: PropTypes.bool,
+};
+

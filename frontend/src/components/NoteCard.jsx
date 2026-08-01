@@ -26,7 +26,7 @@ export default function NoteCard({ note, onTogglePin, onDelete }) {
   ];
 
   return (
-    <li>
+    <li className="notecard-wrapper">
       <NavLink
         to={`/notes/${note.id}`}
         className={linkClass}
@@ -42,15 +42,15 @@ export default function NoteCard({ note, onTogglePin, onDelete }) {
         </time>
 
         {note.isPinned && <span className="notecard__pin" aria-label="Pinned" />}
-
-        <span className="notecard__actions">
-          <Menu
-            label={`Actions for ${note.title || 'Untitled note'}`}
-            icon={MoreIcon}
-            items={actions}
-          />
-        </span>
       </NavLink>
+
+      <span className="notecard__actions">
+        <Menu
+          label={`Actions for ${note.title || 'Untitled note'}`}
+          icon={MoreIcon}
+          items={actions}
+        />
+      </span>
     </li>
   );
 }

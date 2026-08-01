@@ -16,8 +16,14 @@ export default function LogoutButton({ className = 'btn btn--danger', label = 'L
 
   const handleConfirm = async () => {
     setBusy(true);
-    await logout();
-    navigate('/login', { replace: true });
+    try {
+      await logout();
+      navigate('/login', { replace: true });
+    } catch {
+      setConfirming(false);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (

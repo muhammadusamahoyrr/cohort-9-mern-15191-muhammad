@@ -4,8 +4,13 @@ node_modules/
 # environment
 .env
 .env.local
-.env.*.local
+.env.development
+.env.test
+.env.production
+.env.*
 !.env.example
+!.env.test.example
+
 
 # build output
 dist/

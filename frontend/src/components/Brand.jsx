@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export default function Brand({ size = 'md' }) {
   return (
     <span className={`brand brand--${size}`}>
@@ -6,3 +8,8 @@ export default function Brand({ size = 'md' }) {
     </span>
   );
 }
+
+Brand.propTypes = {
+  size: PropTypes.string,
+};
+

@@ -13,13 +13,39 @@ export default function ConfirmDialog({
   onCancel,
 }) {
   const confirmRef = useRef(null);
+  const dialogRef = useRef(null);
 
   useEffect(() => {
     const opener = document.activeElement;
     confirmRef.current?.focus();
 
     const handleKey = (e) => {
-      if (e.key === 'Escape') onCancel?.();
+      if (e.key === 'Escape') {
+        onCancel?.();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const dialog = dialogRef.current;
+        if (!dialog) return;
+        const focusables = dialog.querySelectorAll(
+          'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
     };
     document.addEventListener('keydown', handleKey);
 
@@ -36,7 +62,13 @@ export default function ConfirmDialog({
         if (e.target === e.currentTarget) onCancel?.();
       }}
     >
-      <div className="sheet dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+      <div
+        ref={dialogRef}
+        className="sheet dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dialog-title"
+      >
         <h2 id="dialog-title">{title}</h2>
         <p>{message}</p>
         <div className="dialog__actions">

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import clsx from 'clsx';
 
 export default function Avatar({ name = '', className = '' }) {
@@ -14,3 +15,9 @@ export default function Avatar({ name = '', className = '' }) {
     </span>
   );
 }
+
+Avatar.propTypes = {
+  name: PropTypes.string,
+  className: PropTypes.string,
+};
+

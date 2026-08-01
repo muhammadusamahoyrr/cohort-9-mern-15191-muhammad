@@ -24,6 +24,7 @@ export function AuthProvider({ children }) {
       })
       .catch(() => {
         if (!cancelled) {
+          setToken(null);
           setTokenState(null);
           setUser(null);
         }

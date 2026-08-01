@@ -1,9 +1,6 @@
 import { Component } from 'react';
+import PropTypes from 'prop-types';
 
-/**
- * Last line of defence for render-time crashes. Without it a single thrown
- * error in any page unmounts the whole tree and the user gets a blank page.
- */
 export default class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
@@ -15,7 +12,6 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    // No client-side log shipping in this project; the console is the record.
     console.error('Unhandled UI error:', error, info.componentStack);
   }
 
@@ -35,3 +31,8 @@ export default class ErrorBoundary extends Component {
     );
   }
 }
+
+ErrorBoundary.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
