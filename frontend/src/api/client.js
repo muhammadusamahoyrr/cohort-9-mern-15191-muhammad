@@ -23,7 +23,7 @@ export function setToken(token) {
       localStorage.removeItem(TOKEN_STORAGE_KEY);
     }
   } catch {
-    // storage disabled or full, nothing we can do
+    // Ignore storage errors
   }
 }
 
@@ -35,7 +35,6 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
-// give every failure the same shape, whatever axios hands us
 function normalizeError(error) {
   const status = error.response?.status ?? 0;
   const body = error.response?.data;
@@ -67,8 +66,6 @@ client.interceptors.response.use(
     const url = error.config?.url ?? '';
     const loggingIn = AUTH_ROUTES.some((path) => url.startsWith(path));
 
-    // An expired session bounces to /login, but a 401 from the login form
-    // itself just means wrong password, so leave that one alone.
     if (error.response?.status === 401 && !loggingIn) {
       setToken(null);
       if (window.location.pathname !== '/login') {
@@ -81,4 +78,5 @@ client.interceptors.response.use(
 );
 
 export default client;
+
 

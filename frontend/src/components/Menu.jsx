@@ -1,4 +1,5 @@
 import { useId, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import useDismiss from '../hooks/useDismiss';
 
@@ -6,7 +7,7 @@ export default function Menu({
   label,
   icon: Icon,
   triggerClass = 'iconbtn',
-  items,
+  items = [],
   align = 'right',
   dark = false,
   iconSize,
@@ -27,7 +28,6 @@ export default function Menu({
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
         onClick={(e) => {
-          // cards are links, so a menu inside one must not navigate
           e.preventDefault();
           e.stopPropagation();
           setOpen((v) => !v);
@@ -51,7 +51,7 @@ export default function Menu({
               </p>
             ) : (
               <button
-                key={item.key}
+                key={item.key || i}
                 type="button"
                 role="menuitem"
                 className={clsx(
@@ -77,3 +77,14 @@ export default function Menu({
     </div>
   );
 }
+
+Menu.propTypes = {
+  label: PropTypes.string.isRequired,
+  icon: PropTypes.elementType,
+  triggerClass: PropTypes.string,
+  items: PropTypes.arrayOf(PropTypes.object),
+  align: PropTypes.oneOf(['left', 'right']),
+  dark: PropTypes.bool,
+  iconSize: PropTypes.number,
+};
+

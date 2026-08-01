@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 import clsx from 'clsx';
 
 export default function ConfirmDialog({
@@ -14,13 +15,11 @@ export default function ConfirmDialog({
   const confirmRef = useRef(null);
 
   useEffect(() => {
-    // hand focus back to whatever opened us, or keyboard users end up at the
-    // top of the document
     const opener = document.activeElement;
     confirmRef.current?.focus();
 
     const handleKey = (e) => {
-      if (e.key === 'Escape') onCancel();
+      if (e.key === 'Escape') onCancel?.();
     };
     document.addEventListener('keydown', handleKey);
 
@@ -33,10 +32,8 @@ export default function ConfirmDialog({
   return (
     <div
       className="dialog-backdrop"
-      // backdrop clicks dismiss, but not a drag that started inside the dialog
-      // and drifted out while selecting text
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onCancel();
+        if (e.target === e.currentTarget) onCancel?.();
       }}
     >
       <div className="sheet dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
@@ -60,3 +57,15 @@ export default function ConfirmDialog({
     </div>
   );
 }
+
+ConfirmDialog.propTypes = {
+  title: PropTypes.string.isRequired,
+  message: PropTypes.string.isRequired,
+  confirmLabel: PropTypes.string,
+  cancelLabel: PropTypes.string,
+  busy: PropTypes.bool,
+  destructive: PropTypes.bool,
+  onConfirm: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+};
+

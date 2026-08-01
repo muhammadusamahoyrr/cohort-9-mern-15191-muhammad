@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import Menu from './Menu';
 import { MoreIcon, StarIcon, TrashIcon } from './icons';
@@ -57,3 +58,17 @@ export default function NoteCard({ note, onTogglePin, onDelete }) {
     </li>
   );
 }
+
+NoteCard.propTypes = {
+  note: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    title: PropTypes.string,
+    color: PropTypes.string,
+    preview: PropTypes.string,
+    updatedAt: PropTypes.string,
+    isPinned: PropTypes.bool,
+  }).isRequired,
+  onTogglePin: PropTypes.func,
+  onDelete: PropTypes.func,
+};
+

@@ -2,12 +2,6 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import clsx from 'clsx';
 import { RedoIcon, RotateIcon, UndoIcon } from './icons';
 
-/**
- * Sketch surface for Draw notes. Strokes are stored as data and repainted, so
- * undo/redo is exact and a resize redraws at the new size instead of
- * stretching a bitmap. Nothing persists, there's no image storage yet.
- */
-
 const TOOLS = [
   { key: 'pencil', label: 'Pencil', width: 40, size: 1.5, alpha: 0.75, cap: 'round' },
   { key: 'pen', label: 'Pen', width: 40, size: 3, alpha: 1, cap: 'round' },
@@ -18,7 +12,6 @@ const TOOLS = [
 const SPEC = Object.fromEntries(TOOLS.map((t) => [t.key, t]));
 const COLORS = ['#212121', '#e42527', '#1e7ae4', '#12a150', '#f5a623'];
 
-// each implement keeps its own ink, so switching tools doesn't recolour the rest
 const DEFAULT_INK = {
   pencil: '#888888',
   pen: '#212121',
@@ -58,7 +51,6 @@ export default function DrawCanvas() {
 
       ctx.beginPath();
       stroke.points.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
-      // a single tap should still leave a mark
       if (stroke.points.length === 1) ctx.lineTo(stroke.points[0].x + 0.1, stroke.points[0].y);
       ctx.stroke();
     });
@@ -67,8 +59,6 @@ export default function DrawCanvas() {
     ctx.globalCompositeOperation = 'source-over';
   }, [strokes]);
 
-  // match the backing store to the element and the pixel ratio, otherwise
-  // strokes look soft on high-DPI screens
   useLayoutEffect(() => {
     const resize = () => {
       const canvas = canvasRef.current;
@@ -136,8 +126,6 @@ export default function DrawCanvas() {
     setUndone((prev) => prev.slice(0, -1));
   };
 
-  // tapping the tool you're already holding opens its colours, so the tray
-  // doesn't need a permanent swatch row
   const pick = (key) => {
     if (key === tool && key !== 'erase') setPickerOpen((v) => !v);
     else {
@@ -206,7 +194,6 @@ export default function DrawCanvas() {
           )}
         </div>
 
-        {/* rotating a sketch needs a stored image, so it's off for now */}
         <button type="button" className="iconbtn" aria-label="Rotate" disabled>
           <RotateIcon />
         </button>
@@ -214,3 +201,4 @@ export default function DrawCanvas() {
     </div>
   );
 }
+
