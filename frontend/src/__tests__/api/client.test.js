@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// The instance the module under test builds, captured so its interceptors can
-// be pulled out and exercised directly — that is where all the logic lives.
+// Grab the instance the module builds so the interceptors can be pulled off
+// and called directly. All the logic lives in there.
 jest.mock('axios', () => {
   const instance = {
     interceptors: {
@@ -26,8 +26,8 @@ beforeAll(async () => {
   getToken = mod.getToken;
   setToken = mod.setToken;
 
-  // Read everything the module did at import time now — the global
-  // resetAllMocks in setupTests wipes these call records after the first test.
+  // read the import-time calls now, resetAllMocks in setupTests wipes these
+  // records after the first test
   [[createConfig]] = axios.create.mock.calls;
   [[onRequest]] = client.interceptors.request.use.mock.calls;
   [[onSuccess, onError]] = client.interceptors.response.use.mock.calls;
@@ -111,8 +111,8 @@ describe('response interceptor', () => {
   });
 
   it('leaves the login screen alone when the credentials are wrong', async () => {
-    // A 401 here means "wrong password" — redirecting would wipe the form and
-    // hide the message the user needs to read.
+    // a 401 here just means wrong password. redirecting would wipe the form
+    // and hide the message
     const error = axiosError(
       401,
       { success: false, error: { message: 'Invalid credentials' } },

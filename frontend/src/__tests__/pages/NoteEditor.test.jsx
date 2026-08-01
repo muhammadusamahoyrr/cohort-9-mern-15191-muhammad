@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { Route } from 'react-router-dom';
 import NoteEditor from '../../pages/NoteEditor';
 import * as notesApi from '../../api/notes.api';
+import { DEFAULT_NOTE_COLOR } from '../../components/notePalette';
 import { renderWithRouter } from '../helpers/render';
 
 jest.mock('../../api/notes.api');
@@ -31,7 +32,12 @@ const renderEditor = (route = '/notes/new') =>
     extraRoutes: dashboardRoute,
   });
 
-describe('NoteEditor — new note', () => {
+beforeEach(() => {
+  jest.clearAllMocks();
+  notesApi.listNotes.mockResolvedValue({ notes: [], pagination: {} });
+});
+
+describe('NoteEditor: new note', () => {
   it('creates the note and returns to the dashboard', async () => {
     notesApi.createNote.mockResolvedValue({ note: { id: 7 } });
 
@@ -46,6 +52,8 @@ describe('NoteEditor — new note', () => {
         title: 'Retro actions',
         contentHtml: 'Ship the thing',
         isPinned: false,
+        color: DEFAULT_NOTE_COLOR,
+        type: 'note',
       })
     );
     expect(await screen.findByRole('heading', { name: 'Your notes' })).toBeInTheDocument();
@@ -77,7 +85,7 @@ describe('NoteEditor — new note', () => {
   it('leaves without saving when nothing has been typed', async () => {
     renderEditor();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Close note' }));
 
     expect(await screen.findByRole('heading', { name: 'Your notes' })).toBeInTheDocument();
     expect(notesApi.createNote).not.toHaveBeenCalled();
@@ -87,7 +95,7 @@ describe('NoteEditor — new note', () => {
     renderEditor();
 
     await userEvent.type(screen.getByLabelText('Title'), 'Half-written');
-    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Close note' }));
 
     expect(await screen.findByRole('dialog')).toHaveTextContent('Discard changes?');
 
@@ -96,7 +104,7 @@ describe('NoteEditor — new note', () => {
   });
 });
 
-describe('NoteEditor — existing note', () => {
+describe('NoteEditor: existing note', () => {
   const existing = {
     note: {
       id: 5,
@@ -144,6 +152,8 @@ describe('NoteEditor — existing note', () => {
         title: 'Standup notes (edited)',
         contentHtml: '<p>Discussed the release train</p>',
         isPinned: false,
+        color: DEFAULT_NOTE_COLOR,
+        type: 'note',
       })
     );
     expect(notesApi.createNote).not.toHaveBeenCalled();

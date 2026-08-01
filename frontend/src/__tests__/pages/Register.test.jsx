@@ -8,8 +8,8 @@ import { renderWithRouter } from '../helpers/render';
 jest.mock('../../api/auth.api');
 
 beforeEach(() => {
-  // Registering flips the token, and AuthProvider immediately verifies it
-  // against /auth/me — give the automock something to resolve.
+  // registering sets the token and AuthProvider verifies it against /auth/me
+  // straight away, so the automock needs something to resolve
   authApi.me.mockResolvedValue({ user: { id: 1, name: 'Ada Lovelace' } });
 });
 
@@ -50,7 +50,7 @@ describe('Register', () => {
     renderRegister();
     await fill({ password: 'Passw0rd', confirm: 'Passw0rdd' });
 
-    expect(screen.getByText('Passwords don’t match')).toBeInTheDocument();
+    expect(screen.getByText("Passwords don't match")).toBeInTheDocument();
     expect(authApi.register).not.toHaveBeenCalled();
   });
 

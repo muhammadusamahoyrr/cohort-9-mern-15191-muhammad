@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from '../App';
+import { SettingsProvider } from '../context/SettingsContext';
+import { CollectionsProvider } from '../context/CollectionsContext';
 import useAuth from '../hooks/useAuth';
 
 jest.mock('../hooks/useAuth');
@@ -12,7 +14,17 @@ const stub = (label) => ({
   default: () => require('react').createElement('p', null, label),
 });
 
-jest.mock('../pages/Dashboard', () => stub('dashboard'));
+// Workspace is a layout route: it has to keep rendering its outlet, otherwise
+// every nested route below it disappears from this suite.
+jest.mock('../pages/Workspace', () => ({
+  __esModule: true,
+  default: () => {
+    const React = require('react');
+    const { Outlet: O } = require('react-router-dom');
+    return React.createElement('div', null, React.createElement('p', null, 'workspace'), React.createElement(O));
+  },
+}));
+jest.mock('../pages/EditorEmpty', () => stub('empty'));
 jest.mock('../pages/NoteEditor', () => stub('editor'));
 jest.mock('../pages/Profile', () => stub('profile'));
 jest.mock('../pages/Login', () => stub('login'));
@@ -22,18 +34,22 @@ const renderAt = (route, session = { token: 'abc.123', loading: false }) => {
   useAuth.mockReturnValue({ user: { name: 'Ada Lovelace' }, logout: jest.fn(), ...session });
 
   return render(
-    <MemoryRouter
-      initialEntries={[route]}
-      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-    >
-      <App />
-    </MemoryRouter>
+    <SettingsProvider>
+      <CollectionsProvider>
+      <MemoryRouter
+        initialEntries={[route]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <App />
+      </MemoryRouter>
+      </CollectionsProvider>
+    </SettingsProvider>
   );
 };
 
 describe('routes', () => {
   it.each([
-    ['/', 'dashboard'],
+    ['/', 'empty'],
     ['/notes/new', 'editor'],
     ['/notes/5', 'editor'],
     ['/profile', 'profile'],
@@ -59,7 +75,7 @@ describe('routes', () => {
 
   it('still honours old /dashboard links', () => {
     renderAt('/dashboard');
-    expect(screen.getByText('dashboard')).toBeInTheDocument();
+    expect(screen.getByText('empty')).toBeInTheDocument();
   });
 
   it('shows the not-found page for anything else', () => {
@@ -69,12 +85,12 @@ describe('routes', () => {
     expect(screen.getByRole('link', { name: 'Back to your notes' })).toHaveAttribute('href', '/');
   });
 
-  it('gives the editor a narrower measure than the dashboard', () => {
-    const { container, unmount } = renderAt('/notes/5');
-    expect(container.querySelector('main')).toHaveClass('page--narrow');
-    unmount();
+  // the list pane has to survive moving between notes, which is the whole
+  // reason the editor is a child route and not a page of its own
+  it('keeps the workspace mounted around an open note', () => {
+    renderAt('/notes/5');
 
-    const dashboard = renderAt('/');
-    expect(dashboard.container.querySelector('main')).not.toHaveClass('page--narrow');
+    expect(screen.getByText('workspace')).toBeInTheDocument();
+    expect(screen.getByText('editor')).toBeInTheDocument();
   });
 });

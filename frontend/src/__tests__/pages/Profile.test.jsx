@@ -42,7 +42,7 @@ describe('Profile', () => {
     expect(await screen.findByText('Ada Lovelace')).toBeInTheDocument();
     expect(screen.getByText('ada@example.com')).toBeInTheDocument();
     expect(await screen.findByText('12')).toBeInTheDocument();
-    // Asked for a single row — the count comes from the pagination block.
+    // we only ask for one row, the count comes from the pagination block
     expect(notesApi.listNotes).toHaveBeenCalledWith({ limit: 1 });
   });
 

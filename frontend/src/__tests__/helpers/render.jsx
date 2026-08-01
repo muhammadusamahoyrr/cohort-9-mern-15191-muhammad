@@ -1,12 +1,17 @@
 import { render } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '../../context/AuthContext';
+import { SettingsProvider } from '../../context/SettingsContext';
+import { CollectionsProvider } from '../../context/CollectionsContext';
 
 /**
- * Renders a page the way the app does — inside a router, and inside the auth
- * provider when the page reads from it. Tests that need a specific URL pass
- * `route`; tests that assert navigation pass `extraRoutes` to give the
- * destination something recognisable to render.
+ * Renders a page the way the app does: inside a router, and inside the auth
+ * provider if the page reads from it. Pass `route` for a specific URL, and
+ * `extraRoutes` when the test asserts navigation and the destination needs
+ * something recognisable to render.
+ *
+ * Settings always wrap, since preferences get read all over the note UI and
+ * that is never the thing under test.
  */
 export function renderWithRouter(
   ui,
@@ -26,7 +31,13 @@ export function renderWithRouter(
     </MemoryRouter>
   );
 
-  return render(withAuth ? <AuthProvider>{tree}</AuthProvider> : tree);
+  const withProviders = withAuth ? <AuthProvider>{tree}</AuthProvider> : tree;
+
+  return render(
+    <SettingsProvider>
+      <CollectionsProvider>{withProviders}</CollectionsProvider>
+    </SettingsProvider>
+  );
 }
 
 /** A stand-in for whatever screen the code under test navigates to. */
