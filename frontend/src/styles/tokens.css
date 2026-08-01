@@ -141,12 +141,3 @@
   --shadow-popover: 0 4px 16px rgba(0, 0, 0, 0.5);
   --highlighter: rgba(255, 255, 255, 0.6);
 }
-
-/* editor font choice */
-:root[data-editor-font='serif'] {
-  --font-editor: 'Newsreader Variable', Georgia, serif;
-}
-
-:root[data-editor-font='mono'] {
-  --font-editor: var(--font-mono);
-}
