@@ -8,29 +8,26 @@ Full-stack notes application: users sign up, log in, and manage their own rich-t
 
 ## Status
 
-Parts 0, 6, 7 and 8 (foundation + frontend + frontend tests) are done, see
-[docs/PROGRESS.md](docs/PROGRESS.md).
-The backend (Parts 1-5) is next. The frontend is written against the contract in
-[docs/03-API.md](docs/03-API.md) and expects it on `http://localhost:4000/api`.
-The project is built in verified increments defined in [docs/00-PLAN.md](docs/00-PLAN.md).
+The frontend is done and covered by tests. The backend is next, and the
+frontend is written against a REST API it expects on
+`http://localhost:4000/api`.
 
-## Documentation
+Until that exists, `frontend/mock-server.cjs` is a small stub API that serves
+enough for the UI to run:
 
-| Doc | Contents |
-|---|---|
-| [00-PLAN.md](docs/00-PLAN.md) | build parts, locked technical decisions |
-| [01-ARCHITECTURE.md](docs/01-ARCHITECTURE.md) | layering, request lifecycle, auth model |
-| [02-DATABASE.md](docs/02-DATABASE.md) | schema, indexes, SQL conventions |
-| [03-API.md](docs/03-API.md) | endpoint contract, status codes, error envelope |
-| [04-LOGGING-AND-ERRORS.md](docs/04-LOGGING-AND-ERRORS.md) | Pino setup, redaction, global exception handling |
-| [05-TESTING.md](docs/05-TESTING.md) | test strategy and coverage targets |
-| [06-SONARQUBE.md](docs/06-SONARQUBE.md) | quality gate, key rules, scanner setup |
-| [07-GIT-WORKFLOW.md](docs/07-GIT-WORKFLOW.md) | branching and commit conventions |
-| [08-PROJECT-STRUCTURE.md](docs/08-PROJECT-STRUCTURE.md) | full directory layout and naming |
-| [09-REQUIREMENTS-COVERAGE.md](docs/09-REQUIREMENTS-COVERAGE.md) | each brief requirement, where it's designed, which part builds it |
-| [10-DESIGN-SYSTEM.md](docs/10-DESIGN-SYSTEM.md) | visual language, tokens, layout rules |
+```bash
+node frontend/mock-server.cjs   # :4000
+```
 
-## Quick start (available from Part 2 onward)
+## Quick start
+
+```bash
+cd frontend && npm install
+cp .env.example .env
+npm run dev                         # http://localhost:5173
+```
+
+Once the backend lands:
 
 ```bash
 docker compose up -d mysql          # MySQL 8 on :3306, schema auto-applied
@@ -38,10 +35,15 @@ docker compose up -d mysql          # MySQL 8 on :3306, schema auto-applied
 cd backend && npm install
 cp .env.example .env                # fill in JWT_SECRET
 npm run dev                         # http://localhost:4000
+```
 
-cd ../frontend && npm install
-cp .env.example .env
-npm run dev                         # http://localhost:5173
+## Tests
+
+```bash
+cd frontend
+npm test
+npm run test:coverage
+npm run lint
 ```
 
 ## Ports

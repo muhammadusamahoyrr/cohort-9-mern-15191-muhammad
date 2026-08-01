@@ -10,10 +10,14 @@ node_modules/
 # build output
 dist/
 build/
+.vite/
 
 # tests & coverage
 coverage/
 .nyc_output/
+
+# working notes, kept local
+docs/
 
 # logs
 *.log

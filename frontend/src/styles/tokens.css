@@ -1,4 +1,4 @@
-/* The whole visual system lives here. See docs/10-DESIGN-SYSTEM.md.
+/* The whole visual system lives here.
    Nothing in a component file should introduce a colour, radius or spacing value.
 
    Values below are measured from the live Zoho Notebook web app
