@@ -1,0 +1,4 @@
+# Collapse generated files in GitHub's diff view so reviews stay readable.
+# The lockfile is still committed and still versioned — it is just hidden by
+# default under "Files changed" and excluded from language stats.
+frontend/package-lock.json linguist-generated=true
