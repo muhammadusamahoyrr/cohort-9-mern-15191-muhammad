@@ -1,0 +1,109 @@
+:root {
+  --paper: #f7f7f7;
+  --sheet: #ffffff;
+  --sheet-sunk: #f1f1f1;
+  --list-surface: #f9f9f9;
+  --ink: #212121;
+  --ink-strong: #000000;
+  --note-ink: #212121;
+  --graphite: rgba(33, 33, 33, 0.4);
+  --rule: rgba(215, 215, 215, 0.36);
+
+  --row-hover: rgba(0, 0, 0, 0.05);
+  --row-active: rgba(0, 0, 0, 0.1);
+  --toggle-off: rgba(0, 0, 0, 0.22);
+
+  --action: #000000;
+  --action-ink: #ffffff;
+  --red-pen: #e42527;
+  --red-pen-wash: rgba(228, 37, 39, 0.1);
+
+  --note-yellow: #ffed7d;
+  --note-blue: #b3d9e6;
+  --note-green: #d1ebb8;
+  --note-pink: #ffa8b3;
+  --note-purple: #d1c4e9;
+  --note-orange: #ffc27d;
+  --note-grey: #e3e3e3;
+  --note-default: var(--note-yellow);
+
+  --font-display: 'Public Sans Variable', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Public Sans Variable', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Menlo, monospace;
+  --font-editor: var(--font-body);
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-md: 18px;
+  --text-lg: 22px;
+  --text-xl: 24px;
+  --text-2xl: 30px;
+  --text-3xl: 38px;
+
+  --leading-tight: 22.8px;
+  --leading-normal: 24px;
+  --leading-title: 32px;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+
+  --header-h: 48px;
+  --list-w: 345px;
+  --nav-row-h: 29px;
+  --nav-row-gap: 8px;
+  --nav-inset: 16px;
+  --card-h: 85px;
+  --card-gap: 16px;
+  --drawer-w: 440px;
+
+  --radius-control: 4px;
+  --radius-card: 6px;
+  --radius-panel: 8px;
+
+  --shadow-sheet: none;
+  --shadow-lift: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --shadow-popover: 0 4px 16px rgba(0, 0, 0, 0.16);
+
+  --ease-out-cubic: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-speed: 0.3s;
+
+  --margin-rule: 0px;
+  --page-max: none;
+  --measure-max: 720px;
+
+  --ink-blue: var(--action);
+  --ink-blue-deep: #333333;
+  --ink-blue-wash: rgba(0, 0, 0, 0.05);
+  --highlighter: rgba(0, 0, 0, 0.45);
+}
+
+:root[data-theme='dark'] {
+  --paper: #1a1a1a;
+  --sheet: #262626;
+  --sheet-sunk: #303030;
+  --list-surface: #202020;
+  --ink: #ececec;
+  --ink-strong: #ffffff;
+  --note-ink: #212121;
+  --graphite: rgba(236, 236, 236, 0.5);
+  --rule: rgba(255, 255, 255, 0.14);
+
+  --row-hover: rgba(255, 255, 255, 0.07);
+  --row-active: rgba(255, 255, 255, 0.14);
+  --toggle-off: rgba(255, 255, 255, 0.25);
+
+  --action: #ececec;
+  --action-ink: #1a1a1a;
+  --red-pen: #ff6b6d;
+  --red-pen-wash: rgba(255, 107, 109, 0.14);
+
+  --shadow-popover: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --highlighter: rgba(255, 255, 255, 0.6);
+}
